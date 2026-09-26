@@ -1,9 +1,8 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 
 const GLB_PRIMARY_URL = '/dog/dog.glb';
-const GLB_FALLBACK_URL = '/dog/source/animal  10.glb';
 
 export interface DogModelProps {
   scale?: number;

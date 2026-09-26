@@ -1,6 +1,5 @@
 import React from 'react';
 import * as THREE from 'three';
-import { AutoRickshaw } from '../../studio/components/3d/vehicles/AutoRickshaw';
 import { BajajChetakScooter } from '../../studio/components/3d/vehicles/BajajChetakScooter';
 import { IndianMotorcycle } from '../../studio/components/3d/vehicles/IndianMotorcycle';
 import { ClassicIndianBicycle } from '../../studio/components/3d/vehicles/ClassicIndianBicycle';
@@ -141,12 +140,16 @@ const OverheadCableSpan: React.FC<{
     return geo;
   }, [points]);
 
+  const lineMat = React.useMemo(() => new THREE.LineBasicMaterial({ color: '#0f172a', linewidth: 1.5 }), []);
+
   return (
     <group>
       {Array.from({ length: count }).map((_, i) => (
-        <line key={i} geometry={lineGeometry} position={[0, i * 0.06 - 0.06, 0]}>
-          <lineBasicMaterial color="#0f172a" linewidth={1.5} />
-        </line>
+        <primitive
+          key={i}
+          object={new THREE.Line(lineGeometry, lineMat)}
+          position={[0, i * 0.06 - 0.06, 0]}
+        />
       ))}
     </group>
   );
@@ -288,7 +291,7 @@ export const GullyStreetEnvironment: React.FC = () => {
           hasStreetLamp={true}
         />
 
-        {/* Pole 2: North Courtyard (Sharma Niwas Stair Entry Corner) */}
+        {/* Pole 2: North Courtyard Corner */}
         <ConcreteElectricPole
           position={[-8.0, 0, -14.5]}
           rotation={[0, 0, 0]}
@@ -331,19 +334,6 @@ export const GullyStreetEnvironment: React.FC = () => {
           2. AUTHENTIC PARKED INDIAN VEHICLES & CARTS
       ═══════════════════════════════════════════════════════════════ */}
       <group name="gully-vehicles">
-        {/* Bajaj Auto-Rickshaw parked in North-West alley near society gate */}
-        <AutoRickshaw
-          position={[-16.2, 0, -15.5]}
-          rotation={[0, 0.5, 0]}
-          scale={0.95}
-          config={{
-            bodyColor: '#16a34a',
-            roofColor: '#eab308',
-            hasFareMeter: true,
-            hasCurtains: true,
-          }}
-        />
-
         {/* Bajaj Chetak Scooter parked neatly by House 2 sidewalk plinth */}
         <BajajChetakScooter
           position={[-8.8, 0, -15.8]}
@@ -351,8 +341,8 @@ export const GullyStreetEnvironment: React.FC = () => {
           scale={0.95}
           config={{
             bodyColor: '#64748b',
-            hasSpareWheel: true,
-            hasSideMirrors: true,
+            hasSpareTire: true,
+            hasMirrors: true,
           }}
         />
 
@@ -363,8 +353,7 @@ export const GullyStreetEnvironment: React.FC = () => {
           scale={0.95}
           config={{
             tankColor: '#1e293b',
-            accentColor: '#dc2626',
-            hasSariGuard: true,
+            hasSareeGuard: true,
             hasCrashGuard: true,
           }}
         />
@@ -376,8 +365,7 @@ export const GullyStreetEnvironment: React.FC = () => {
           scale={0.95}
           config={{
             frameColor: '#0f172a',
-            hasFrontBasket: true,
-            hasRearCarrier: true,
+            hasCarrier: true,
             hasChainCover: true,
           }}
         />
@@ -388,9 +376,9 @@ export const GullyStreetEnvironment: React.FC = () => {
           rotation={[0, 0.4, 0]}
           scale={0.95}
           config={{
-            hasWeighingScale: true,
-            hasCrates: true,
-            hasJuteCover: true,
+            hasScale: true,
+            hasProduce: true,
+            hasJuteSacks: true,
           }}
         />
 
@@ -401,7 +389,7 @@ export const GullyStreetEnvironment: React.FC = () => {
           scale={0.92}
           config={{
             bodyColor: '#f1f5f9',
-            hasLuggageCarrier: false,
+            hasRoofRack: false,
           }}
         />
       </group>
@@ -490,7 +478,6 @@ export const GullyStreetEnvironment: React.FC = () => {
           position={[-14.2, 0, 19.5]}
           rotation={[0, 0.6, 0]}
           scale={1.1}
-          hasFallenLeaves={true}
         />
 
         {/* Medium Tree near House 12 East Garden Pocket */}

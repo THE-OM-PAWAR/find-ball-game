@@ -1,6 +1,36 @@
 import React, { useState } from 'react';
-import { HOUSE_ASSETS, PROP_ASSETS, LANDMARK_ASSETS } from '../../../editor/AssetRegistry';
-import type { AssetDefinition, AssetId } from '../../../editor/EditorTypes';
+
+export type AssetId = string;
+
+export interface AssetDefinition {
+  id: AssetId;
+  displayName: string;
+  category: string;
+  icon: string;
+  footprintSize?: [number, number];
+}
+
+export const HOUSE_ASSETS: AssetDefinition[] = [
+  { id: 'SingleStoryStairHouse', displayName: 'Stair House', category: 'house', icon: '🏠', footprintSize: [8.2, 5.6] },
+  { id: 'TwoStoryBoxHouse', displayName: '2-Story Box House', category: 'house', icon: '🏢', footprintSize: [5.6, 5.0] },
+  { id: 'ThreeStoryBoxHouse', displayName: '3-Story Box House', category: 'house', icon: '🏬', footprintSize: [5.6, 5.0] },
+  { id: 'ModernGullyHouse', displayName: 'Modern Villa', category: 'house', icon: '🏡', footprintSize: [5.4, 5.4] },
+  { id: 'TwoStoryShopComplex', displayName: '2-Story Shops', category: 'house', icon: '🏪', footprintSize: [10.4, 5.2] },
+  { id: 'ThreeStoryShopComplex', displayName: '3-Story Shops', category: 'house', icon: '🏬', footprintSize: [10.4, 5.2] },
+  { id: 'GullyChawlHouse', displayName: 'Chawl Unit', category: 'house', icon: '🏘️', footprintSize: [4.2, 4.0] },
+];
+
+export const PROP_ASSETS: AssetDefinition[] = [
+  { id: 'Motorcycle', displayName: 'Indian Motorcycle', category: 'vehicle', icon: '🏍️' },
+  { id: 'Bicycle', displayName: 'Hero Roadster', category: 'vehicle', icon: '🚲' },
+  { id: 'PushCart', displayName: 'Vegetable Thela', category: 'street', icon: '🛒' },
+  { id: 'GarbageBins', displayName: 'Municipal Bins', category: 'utility', icon: '🗑️' },
+];
+
+export const LANDMARK_ASSETS: AssetDefinition[] = [
+  { id: 'cricket_pitch', displayName: 'Cricket Arena', category: 'landmark', icon: '🏏' },
+  { id: 'exit_gate', displayName: 'Society Exit Gate', category: 'landmark', icon: '🚪' },
+];
 
 interface AssetLibraryPanelProps {
   onPlaceAsset: (assetId: AssetId) => void;
@@ -163,7 +193,7 @@ export const AssetLibraryPanel: React.FC<AssetLibraryPanelProps> = ({ onPlaceAss
 
       {/* Asset list */}
       <div style={s.assetList}>
-        {currentTab.assets.map((def) => (
+        {currentTab.assets.map((def: AssetDefinition) => (
           <div
             key={def.id}
             style={{

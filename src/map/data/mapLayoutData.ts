@@ -415,6 +415,17 @@ export function getLevel1MapColliders(): EnvironmentCollider[] {
     },
   ];
 
+  for (const lad of ladders) {
+    colliders.push({
+      type: 'box',
+      min: lad.min,
+      max: lad.max,
+      isLadder: true,
+      targetLandingY: lad.targetLandingY,
+      climbDirection: lad.climbDirection,
+    });
+  }
+
   // 7. Street Vehicles, Electric Utility Poles & Street Obstacles
   const streetObstacles = [
     // Concrete Electric Utility Poles (0.4m x 0.4m x 7.5m)
@@ -423,9 +434,6 @@ export function getLevel1MapColliders(): EnvironmentCollider[] {
     { min: new THREE.Vector3(11.25, 0, -15.75), max: new THREE.Vector3(11.75, 7.5, -15.25) },
     { min: new THREE.Vector3(-6.25, 0, 10.25), max: new THREE.Vector3(-5.75, 7.5, 10.75) },
     { min: new THREE.Vector3(8.25, 0, 12.25), max: new THREE.Vector3(8.75, 7.5, 12.75) },
-
-    // Parked Bajaj Auto-Rickshaw in North-West alley
-    { min: new THREE.Vector3(-17.2, 0, -16.8), max: new THREE.Vector3(-15.2, 1.8, -14.2) },
 
     // Parked Compact Gully Car at South alley
     { min: new THREE.Vector3(0.8, 0, 16.2), max: new THREE.Vector3(3.2, 1.5, 19.8) },

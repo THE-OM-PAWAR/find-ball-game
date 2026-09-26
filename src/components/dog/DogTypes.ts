@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import type { EnvironmentCollider, PlayerTelemetry } from '../player/PlayerTypes';
 
 /**
  * Dog AI States

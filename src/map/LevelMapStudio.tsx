@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, MapControls, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import * as THREE from 'three';
 import { GullyLevelMap } from './GullyLevelMap';
-import { StudioLighting, type LightingPreset } from '../studio/components/3d/environment/StudioLighting';
+import { type LightingPreset } from '../studio/components/3d/environment/StudioLighting';
 import { Player } from '../components/player/Player';
 import { getLevel1MapColliders } from './data/mapLayoutData';
 import type { PlayerTelemetry } from '../components/player/PlayerTypes';
@@ -14,10 +14,6 @@ import {
   ChevronRight,
   Gamepad2,
   RotateCcw,
-  Gauge,
-  Zap,
-  Activity,
-  Footprints,
 } from 'lucide-react';
 
 export type MapCameraView = 'perspective' | 'topdown' | 'house_a' | 'ball_roof' | 'exit_gate' | 'cricket_pitch';

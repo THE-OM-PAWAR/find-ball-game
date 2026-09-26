@@ -1,5 +1,4 @@
 import React from 'react';
-import * as THREE from 'three';
 import { MAP_DIMENSIONS } from '../data/mapLayoutData';
 
 interface GroundTerrainProps {

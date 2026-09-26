@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { DogConfig, DogAIState, DogTelemetry, DistractionItem, NoiseEvent } from './DogTypes';
+import type { DogConfig, DogAIState, DogTelemetry, DistractionItem } from './DogTypes';
 import type { PlayerTelemetry } from '../player/PlayerTypes';
 import { evaluateDogPerception, type PerceptionResult } from './DogPerception';
 import { findNearestDistraction, consumeDistraction } from './DogInteraction';

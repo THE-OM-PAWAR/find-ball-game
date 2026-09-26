@@ -132,12 +132,12 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
     // 4. Check Ladder Interactions
     if (isClimbingLadderRef.current && activeLadderRef.current) {
       const lad = activeLadderRef.current;
-      const climbSpeed = params.climbSpeed || 2.5;
+      const climbSpeed = 1.5; // Steady, realistic climbing pace
 
       // Face the ladder
       if (lad.climbDirection) {
         const ladderAngle = Math.atan2(lad.climbDirection.x, lad.climbDirection.z);
-        facingAngleRef.current = THREE.MathUtils.damp(facingAngleRef.current, ladderAngle, 18, dt);
+        facingAngleRef.current = THREE.MathUtils.damp(facingAngleRef.current, ladderAngle, 14, dt);
       }
 
       // Vertical climb controls
@@ -232,7 +232,7 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
       }
     }
 
-    // 6. Target Horizontal Speed & Velocity (Normal Locomotion)
+    // 6. Target Horizontal Speed & Velocity (Smooth Locomotion)
     if (!isClimbingLadderRef.current) {
       let targetSpeed = 0;
       if (hasMovementInput) {
@@ -247,8 +247,8 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
 
       tempTargetVel.copy(tempMoveDir).multiplyScalar(targetSpeed);
       const accelRate = isGroundedRef.current
-        ? (hasMovementInput ? params.acceleration : params.deceleration)
-        : params.acceleration * params.airControl;
+        ? (hasMovementInput ? 16.0 : 18.0)
+        : 12.0 * params.airControl;
 
       vel.current.x = THREE.MathUtils.damp(vel.current.x, tempTargetVel.x, accelRate, dt);
       vel.current.z = THREE.MathUtils.damp(vel.current.z, tempTargetVel.z, accelRate, dt);
@@ -259,7 +259,7 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
         let angleDiff = (targetAngle - facingAngleRef.current) % (Math.PI * 2);
         if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
         if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-        facingAngleRef.current += angleDiff * Math.min(1, params.rotationSpeed * dt);
+        facingAngleRef.current += angleDiff * Math.min(1, 14.0 * dt);
       }
 
       // Vertical Physics: Jump & Gravity
@@ -275,37 +275,33 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
         if (vel.current.y < -30) vel.current.y = -30;
       }
 
-      // 7. Smooth Climbing & Mantling Detection (AC Units, Wall Ledges, Parapets)
-      let isClimbingAssist = false;
-      if (hasMovementInput || input.jump) {
+      // 7. Climbing & Mantling Detection (Only triggers on active Jump against high walls/ACs > 0.65m, not normal stairs)
+      if (input.jump && hasMovementInput) {
         for (const col of colliders) {
           if (col.type === 'box' && col.min && col.max && !col.isLadder) {
             const ledgeTop = col.max.y;
             const heightDiff = ledgeTop - pos.current.y;
 
-            // Check reachable climb height range (0.35m to 2.4m above feet)
-            if (heightDiff > params.stepHeight && heightDiff <= 2.4) {
+            // Height must be distinctly above normal stairs (> 0.65m) and reachable (<= 2.4m)
+            if (heightDiff > 0.65 && heightDiff <= 2.4) {
               const closestX = THREE.MathUtils.clamp(pos.current.x, col.min.x, col.max.x);
               const closestZ = THREE.MathUtils.clamp(pos.current.z, col.min.z, col.max.z);
               const toLedgeX = closestX - pos.current.x;
               const toLedgeZ = closestZ - pos.current.z;
               const distToLedge = Math.sqrt(toLedgeX * toLedgeX + toLedgeZ * toLedgeZ);
 
-              if (distToLedge < params.radius + 0.55) {
+              if (distToLedge < params.radius + 0.6) {
                 const dotMove = toLedgeX * tempMoveDir.x + toLedgeZ * tempMoveDir.z;
-                if (dotMove > 0.01 || input.jump) {
-                  isClimbingAssist = true;
-                  climbingWallTimerRef.current = 0.55;
+                if (dotMove > 0.05) {
+                  climbingWallTimerRef.current = 0.85; // Smooth deliberate mantle
 
-                  // Smooth upward mantle impulse
-                  vel.current.y = Math.max(vel.current.y, 4.9);
-                  // Forward assist to pull player safely onto the ledge
-                  vel.current.x += tempMoveDir.x * 0.9;
-                  vel.current.z += tempMoveDir.z * 0.9;
+                  // Upward and forward mantle impulse
+                  vel.current.y = 3.6;
+                  vel.current.x = tempMoveDir.x * 1.2;
+                  vel.current.z = tempMoveDir.z * 1.2;
 
-                  // Face the climbing obstacle
                   const climbAngle = Math.atan2(toLedgeX, toLedgeZ);
-                  facingAngleRef.current = THREE.MathUtils.damp(facingAngleRef.current, climbAngle, 18, dt);
+                  facingAngleRef.current = THREE.MathUtils.damp(facingAngleRef.current, climbAngle, 14, dt);
                   break;
                 }
               }
@@ -324,6 +320,10 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
     proposedPos.x += vel.current.x * dt;
     proposedPos.z += vel.current.z * dt;
     proposedPos.y += vel.current.y * dt;
+
+    // Hard Boundary Clamp (Keeps player strictly inside 50m x 50m neighborhood)
+    proposedPos.x = THREE.MathUtils.clamp(proposedPos.x, -24.2, 24.2);
+    proposedPos.z = THREE.MathUtils.clamp(proposedPos.z, -24.2, 24.2);
 
     const currentRadius = params.radius;
     const currentHeight = colliderHeightRef.current;
@@ -355,20 +355,20 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
             proposedPos.z <= col.max.z;
 
           if (distSq < currentRadius * currentRadius || isInside) {
-            // Check if this is a walkable step-up or climbable ledge
+            // Check if this is a walkable step-up (smoothly walks up house stairs)
             const stepDiff = col.max.y - playerBottom;
             if (
               (isGroundedRef.current || climbingWallTimerRef.current > 0) &&
               stepDiff > 0.01 &&
-              stepDiff <= params.stepHeight &&
+              stepDiff <= 0.52 &&
               hasMovementInput
             ) {
               proposedPos.y = col.max.y;
               continue;
             }
 
-            // Ledge snap: if player's feet are within 0.22m of the top, smoothly step up
-            if (stepDiff > 0 && stepDiff <= 0.22 && vel.current.y >= -0.5) {
+            // Ledge snap: if player's feet are within 0.25m of the top, smoothly step up
+            if (stepDiff > 0 && stepDiff <= 0.25 && vel.current.y >= -0.5) {
               proposedPos.y = col.max.y;
               vel.current.y = 0;
               continue;
@@ -438,7 +438,7 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
             proposedPos.z <= col.max.z + footProbeRadius
           ) {
             // Only register surfaces at or below the player's reachable step height
-            if (col.max.y <= pos.current.y + params.stepHeight + 0.1) {
+            if (col.max.y <= pos.current.y + 0.55) {
               if (col.max.y > groundLevel) {
                 groundLevel = col.max.y;
               }
@@ -447,25 +447,29 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
         }
       }
 
-      // Ground landing & step-down snap resolution
-      if (vel.current.y > 0.05) {
+      // Void Safety Catch: ensure player never falls through the floor below ground
+      if (proposedPos.y < 0.0) {
+        proposedPos.y = 0.0;
+        vel.current.y = 0;
+        isGroundedRef.current = true;
+      } else if (vel.current.y > 0.05) {
         // Actively jumping upward: do not snap to ground
         isGroundedRef.current = false;
       } else {
         const distToGround = proposedPos.y - groundLevel;
 
-        if (distToGround <= 0.08 && distToGround >= -0.3) {
-          // Landed on or near ground
+        if (distToGround <= 0.12 && distToGround >= -0.35) {
+          // Landed on or near ground / roof floor
           proposedPos.y = groundLevel;
           vel.current.y = 0;
           isGroundedRef.current = true;
-        } else if (isGroundedRef.current && distToGround > 0.08 && distToGround <= params.stepHeight + 0.08) {
-          // Step-down snapping (e.g. walking down stairs smoothly)
+        } else if (isGroundedRef.current && distToGround > 0.12 && distToGround <= 0.55) {
+          // Step-down snapping (walking down stairs smoothly)
           proposedPos.y = groundLevel;
           vel.current.y = 0;
           isGroundedRef.current = true;
         } else {
-          // In the air (e.g., falling off roof or high drop)
+          // In the air (falling from roof or jumping)
           isGroundedRef.current = false;
         }
       }

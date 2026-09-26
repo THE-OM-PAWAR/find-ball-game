@@ -1,5 +1,4 @@
 import React from 'react';
-import * as THREE from 'three';
 
 interface SocietyExitGateProps {
   position?: [number, number, number];

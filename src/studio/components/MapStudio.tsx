@@ -3,7 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, MapControls, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import * as THREE from 'three';
 import { GullyLevelMap } from '../../map/GullyLevelMap';
-import { StudioLighting, type LightingPreset } from './3d/environment/StudioLighting';
+import { type LightingPreset } from './3d/environment/StudioLighting';
 import { Player } from '../../components/player/Player';
 import { getLevel1MapColliders } from '../../map/data/mapLayoutData';
 import type { PlayerTelemetry } from '../../components/player/PlayerTypes';
@@ -12,9 +12,6 @@ import {
   Eye,
   Gamepad2,
   RotateCcw,
-  Footprints,
-  Activity,
-  Zap,
 } from 'lucide-react';
 
 interface MapStudioProps {

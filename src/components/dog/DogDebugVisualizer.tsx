@@ -9,7 +9,7 @@ interface DogDebugVisualizerProps {
 }
 
 export const DogDebugVisualizer: React.FC<DogDebugVisualizerProps> = ({ telemetry, config }) => {
-  const { position, rotationY, state, detection, targetPosition, targetType, isSeeingPlayer, isHearingPlayer } = telemetry;
+  const { position, rotationY, state, detection, targetPosition, targetType } = telemetry;
 
   // Determine vision cone color based on state
   const coneColor = useMemo(() => {
@@ -55,14 +55,6 @@ export const DogDebugVisualizer: React.FC<DogDebugVisualizerProps> = ({ telemetr
 
     return new THREE.ShapeGeometry(shape);
   }, [state, config.visionRange, config.visionAngle, config.sleepingVisionRange, config.sleepingVisionAngle]);
-
-  // Waypoint path vertices
-  const waypointPoints = useMemo(() => {
-    if (config.patrolPoints.length < 2) return [];
-    const pts = config.patrolPoints.map((wp) => new THREE.Vector3(...wp.position));
-    pts.push(pts[0].clone()); // Close loop
-    return pts;
-  }, [config.patrolPoints]);
 
   return (
     <group>

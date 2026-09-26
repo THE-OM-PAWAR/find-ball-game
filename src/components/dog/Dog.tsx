@@ -6,7 +6,7 @@ import { DogAnimation } from './DogAnimation';
 import { updateDogMovement } from './DogController';
 import { DogDebugVisualizer } from './DogDebugVisualizer';
 import { updateDistractionPhysics, getActiveDistractions } from './DogInteraction';
-import type { DogConfig, DogTelemetry, DogAIState, DistractionItem } from './DogTypes';
+import type { DogConfig, DogTelemetry, DogAIState } from './DogTypes';
 import { DEFAULT_DOG_CONFIG } from './DogTypes';
 import type { EnvironmentCollider, PlayerTelemetry } from '../player/PlayerTypes';
 
@@ -48,7 +48,6 @@ export const Dog: React.FC<DogProps> = ({
 
   // React State for rendering updates only when needed
   const [currentAIState, setCurrentAIState] = useState<DogAIState>(mergedConfig.startState);
-  const [currentDetection, setCurrentDetection] = useState<number>(0);
   const [renderTelemetry, setRenderTelemetry] = useState<DogTelemetry>({
     position: initPos.clone(),
     rotationY: 0,

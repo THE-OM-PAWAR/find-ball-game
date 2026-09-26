@@ -15,7 +15,7 @@ const _displacement = new THREE.Vector3();
  * Resolve dog capsule horizontal collision against box colliders
  */
 export function resolveDogEnvironmentCollision(
-  currentPos: THREE.Vector3,
+  _currentPos: THREE.Vector3,
   desiredPos: THREE.Vector3,
   colliders: EnvironmentCollider[],
   dogRadius: number = 0.28

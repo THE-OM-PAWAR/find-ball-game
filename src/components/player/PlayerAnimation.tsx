@@ -292,7 +292,7 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
       if (climbWallActionRef.current) {
         climbWallActionRef.current.reset();
         climbWallActionRef.current.setEffectiveWeight(1.0);
-        climbWallActionRef.current.timeScale = 1.35;
+        climbWallActionRef.current.timeScale = 0.82; // Realistic, deliberate mantling speed
         climbWallActionRef.current.play();
       }
     }
@@ -302,7 +302,7 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
       if (climbLadderActionRef.current) {
         climbLadderActionRef.current.reset();
         climbLadderActionRef.current.setEffectiveWeight(1.0);
-        climbLadderActionRef.current.timeScale = 1.25;
+        climbLadderActionRef.current.timeScale = 0.80; // Realistic, steady ladder climbing speed
         climbLadderActionRef.current.play();
       }
     }
