@@ -828,6 +828,24 @@ export const GullyLevelMap: React.FC<GullyLevelMapProps> = ({
           rotation={[0, -Math.PI / 2, 0]}
           height={6.25}
         />
+
+        {/* ── PATH 7: H11 Balaji South Terrace (+6.65m) → H12 Modern Villa (+3.24m) [Descent] ── */}
+        <DesertCoolerUnit
+          position={[22.3, 4.5, 4.8]}
+          rotation={[0, 0, 0]}
+          width={1.0}
+          height={0.6}
+          depth={0.5}
+        />
+        <WallServiceLadder
+          position={[21.8, 3.24, 4.8]}
+          rotation={[0, 0, 0]}
+          height={3.4}
+        />
+
+        {/* ── PATH 8: H12 Villa (+3.24m) → Southeast Canopy & Ground Descent ── */}
+        <RooftopPlankBridge position={[22.4, 3.26, 11.2]} length={2.2} width={0.8} />
+        <RooftopPlankBridge position={[19.2, 3.26, 16.5]} rotation={[0, Math.PI / 4, 0]} length={2.4} width={0.8} />
       </group>
 
       {/* ── NATURAL OBJECTIVE: THE LOST CRICKET BALL on H11 Balaji Plaza Rooftop (+6.65m) ── */}

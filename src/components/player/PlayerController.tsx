@@ -130,6 +130,14 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
       return;
     }
 
+    // Ball Pick-Up Cutscene: bend down to pick up the ball from the roof terrace
+    if (CheckpointManager.isPickingUpBall) {
+      vel.current.set(0, 0, 0);
+      if (visualState !== 'CROUCH') setVisualState('CROUCH');
+      setVisualIsCrouching(true);
+      return;
+    }
+
     const dt = Math.min(delta, 0.05);
 
     // 1. Consume Mouse Look Delta for Camera

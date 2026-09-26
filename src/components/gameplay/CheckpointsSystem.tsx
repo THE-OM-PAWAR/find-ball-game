@@ -14,10 +14,12 @@ interface CheckpointsSystemProps {
 }
 
 /**
- * Minimal, Production-Grade Indian Gully Checkpoint System
- * - Pure 3D glowing beacons & floating gems (zero clumsy 3D text labels)
- * - Ultra-minimal top HUD tracker
- * - Beacons turn OFF / removed once reached
+ * 2-Phase Indian Gully Checkpoint Traversal System
+ * - Phase 1 (1-5): Ascend rooftops & retrieve lost ball
+ * - Phase 2 (6-10): Descend through East/South terraces back to the ground cricket pitch
+ * - 16m tall vertical light beacons visible from far
+ * - Lights turn OFF / removed once each checkpoint is reached
+ * - Minimal top HUD tracker
  */
 export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
   onCheckpointReached,
@@ -26,6 +28,8 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
   const [state, setState] = useState({
     activeId: CheckpointManager.activeId,
     completed: CheckpointManager.completed,
+    hasBall: CheckpointManager.hasBall,
+    isGameWon: CheckpointManager.isGameWon,
     notification: CheckpointManager.notification,
   });
 
@@ -34,12 +38,15 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
       setState({
         activeId: newState.activeId,
         completed: newState.completed,
+        hasBall: newState.hasBall,
+        isGameWon: newState.isGameWon,
         notification: newState.notification,
       });
 
-      if (newState.completed.has(5)) {
+      if (newState.hasBall && newState.completed.has(5)) {
         onBallRetrieved?.();
-      } else if (newState.completed.size > 0) {
+      }
+      if (newState.completed.size > 0) {
         const lastId = Array.from(newState.completed).pop();
         if (lastId) onCheckpointReached?.(lastId);
       }
@@ -48,12 +55,19 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
     return () => unsubscribe();
   }, [onCheckpointReached, onBallRetrieved]);
 
+  // Determine which phase checkpoints to render:
+  // If player does not have ball yet -> show Phase 1 (1..5)
+  // If player retrieved ball -> show Phase 2 (6..10)
+  const activePhase = state.hasBall ? 2 : 1;
+  const currentPhaseCheckpoints = GULLY_CHECKPOINTS.filter((cp) => cp.phase === activePhase);
+  const phaseCompletedCount = currentPhaseCheckpoints.filter((cp) => state.completed.has(cp.id)).length;
+
   return (
     <group name="gully-checkpoints-system">
-      {/* Pure 3D Checkpoint Beacons (completed ones are removed) */}
-      {GULLY_CHECKPOINTS.map((cp) => {
+      {/* Render ONLY uncompleted checkpoints for current active phase */}
+      {currentPhaseCheckpoints.map((cp) => {
         const isCompleted = state.completed.has(cp.id);
-        if (isCompleted) return null;
+        if (isCompleted) return null; // Light is removed once reached
 
         const isCurrent = state.activeId === cp.id;
 
@@ -66,7 +80,7 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
         );
       })}
 
-      {/* Ultra-Minimal Top Screen HUD */}
+      {/* Minimal Top Screen HUD */}
       <Html position={[0, 0, 0]} style={{ pointerEvents: 'none' }}>
         <div
           style={{
@@ -86,7 +100,9 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
           {state.notification ? (
             <div
               style={{
-                background: 'rgba(16, 185, 129, 0.92)',
+                background: state.hasBall
+                  ? 'rgba(234, 88, 12, 0.92)'
+                  : 'rgba(16, 185, 129, 0.92)',
                 backdropFilter: 'blur(8px)',
                 color: '#ffffff',
                 padding: '6px 18px',
@@ -95,7 +111,7 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
                 fontWeight: 800,
                 letterSpacing: '0.3px',
                 whiteSpace: 'nowrap',
-                boxShadow: '0 4px 20px rgba(16, 185, 129, 0.35)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -106,7 +122,7 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
           ) : (
             <div
               style={{
-                background: 'rgba(15, 23, 42, 0.75)',
+                background: 'rgba(15, 23, 42, 0.78)',
                 backdropFilter: 'blur(12px)',
                 color: '#f8fafc',
                 padding: '6px 16px',
@@ -121,12 +137,16 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
                 boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
               }}
             >
-              <span style={{ fontSize: '13px' }}>🎯</span>
+              <span style={{ fontSize: '13px' }}>{state.hasBall ? '🏏' : '🎯'}</span>
               <span style={{ color: '#e2e8f0' }}>
-                {state.completed.has(5) ? 'Ball Found!' : `Checkpoint ${state.completed.size}/5`}
+                {state.isGameWon
+                  ? 'Gully Match Resumed! 🏆'
+                  : state.hasBall
+                  ? `Return to Pitch (${phaseCompletedCount}/5)`
+                  : `Retrieve Ball (${phaseCompletedCount}/5)`}
               </span>
               <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-                {GULLY_CHECKPOINTS.map((cp) => (
+                {currentPhaseCheckpoints.map((cp) => (
                   <div
                     key={cp.id}
                     style={{
@@ -136,12 +156,14 @@ export const CheckpointsSystem: React.FC<CheckpointsSystemProps> = ({
                       background: state.completed.has(cp.id)
                         ? '#10b981'
                         : state.activeId === cp.id
-                        ? '#f59e0b'
+                        ? state.hasBall
+                          ? '#a855f7'
+                          : '#f59e0b'
                         : 'rgba(255, 255, 255, 0.25)',
                       boxShadow: state.completed.has(cp.id)
                         ? '0 0 6px #10b981'
                         : state.activeId === cp.id
-                        ? '0 0 6px #f59e0b'
+                        ? `0 0 6px ${state.hasBall ? '#a855f7' : '#f59e0b'}`
                         : 'none',
                     }}
                   />
@@ -173,7 +195,7 @@ const SingleCheckpointBeacon: React.FC<SingleCheckpointBeaconProps> = ({
   useFrame((_, delta) => {
     if (gemRef.current) {
       gemRef.current.rotation.y += delta * 1.5;
-      gemRef.current.position.y = (data.isFinal ? 1.5 : 1.1) + Math.sin(Date.now() * 0.003) * 0.1;
+      gemRef.current.position.y = (data.isBall || data.isVictory ? 1.5 : 1.1) + Math.sin(Date.now() * 0.003) * 0.1;
     }
     if (ringRef.current) {
       ringRef.current.rotation.z += delta * 0.6;
@@ -194,7 +216,16 @@ const SingleCheckpointBeacon: React.FC<SingleCheckpointBeaconProps> = ({
     <group position={[x, y, z]} name={`checkpoint-${data.id}`}>
       {/* ── 1. TALL VERTICAL LIGHT BEACON PILLAR (16m High - Visible from far) ── */}
       <mesh ref={pillarRef} position={[0, 8, 0]}>
-        <cylinderGeometry args={[data.isFinal ? 0.4 : 0.22, data.isFinal ? 0.7 : 0.38, 16, 16, 1, true]} />
+        <cylinderGeometry
+          args={[
+            data.isBall || data.isVictory ? 0.42 : 0.22,
+            data.isBall || data.isVictory ? 0.72 : 0.38,
+            16,
+            16,
+            1,
+            true,
+          ]}
+        />
         <meshBasicMaterial
           color={displayColor}
           transparent={true}
@@ -229,9 +260,10 @@ const SingleCheckpointBeacon: React.FC<SingleCheckpointBeaconProps> = ({
         </mesh>
       </group>
 
-      {/* ── 3. ROTATING 3D FLOATING GEM (No text labels) ── */}
+      {/* ── 3. ROTATING 3D FLOATING GEM ── */}
       <group ref={gemRef} position={[0, 1.1, 0]}>
-        {data.isFinal ? (
+        {data.isBall ? (
+          // Radiant Cricket Ball Gem
           <group>
             <mesh>
               <octahedronGeometry args={[0.32, 0]} />
@@ -253,7 +285,31 @@ const SingleCheckpointBeacon: React.FC<SingleCheckpointBeaconProps> = ({
               />
             </mesh>
           </group>
+        ) : data.isVictory ? (
+          // Radiant Victory Emerald Pitch Trophy Gem
+          <group>
+            <mesh>
+              <octahedronGeometry args={[0.36, 0]} />
+              <meshStandardMaterial
+                color="#10b981"
+                emissive="#059669"
+                emissiveIntensity={1.4}
+                roughness={0.2}
+                metalness={0.9}
+              />
+            </mesh>
+            <mesh scale={[1.3, 1.3, 1.3]}>
+              <octahedronGeometry args={[0.36, 0]} />
+              <meshBasicMaterial
+                color="#34d399"
+                wireframe={true}
+                transparent={true}
+                opacity={0.7}
+              />
+            </mesh>
+          </group>
         ) : (
+          // Standard Checkpoint Diamond
           <group>
             <mesh>
               <octahedronGeometry args={[0.22, 0]} />

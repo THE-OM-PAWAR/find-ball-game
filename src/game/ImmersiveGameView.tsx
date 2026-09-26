@@ -7,6 +7,8 @@ import { getLevel1MapColliders } from '../map/data/mapLayoutData';
 import { LoadingScreen } from './LoadingScreen';
 import { GameControlsOverlay } from './GameControlsOverlay';
 import { DesynchronizedOverlay } from './DesynchronizedOverlay';
+import { GameCompletionModal } from './GameCompletionModal';
+import { BallPickupCinematicOverlay } from './BallPickupCinematicOverlay';
 
 /**
  * 100% Immersive Fullscreen Indian Gully Game View
@@ -49,6 +51,12 @@ export const ImmersiveGameView: React.FC = () => {
 
       {/* Cinematic 2-Second GTA-Style Desynchronized Respawn Screen */}
       {isPlaying && <DesynchronizedOverlay />}
+
+      {/* Celebratory Victory & Game Completion Animation Modal */}
+      {isPlaying && <GameCompletionModal />}
+
+      {/* Cinematic Ball Pick-Up Cutscene Overlay at 5th Checkpoint */}
+      {isPlaying && <BallPickupCinematicOverlay />}
 
       {/* Main 3D WebGL Canvas */}
       <Canvas
