@@ -81,7 +81,12 @@ export const PlayerCamera: React.FC<PlayerCameraProps> = ({
       targetPosition.z + shoulderDir.z * params.shoulderOffset
     );
 
-    currentTargetRef.current.lerp(idealTarget, 1 - Math.exp(-20 * dt));
+    // Snap instantly on large displacement (e.g. checkpoint respawn/teleport) to eliminate camera desync
+    if (currentTargetRef.current.distanceTo(idealTarget) > 4.0) {
+      currentTargetRef.current.copy(idealTarget);
+    } else {
+      currentTargetRef.current.lerp(idealTarget, 1 - Math.exp(-20 * dt));
+    }
 
     // 3. Spherical Camera Position
     const cosPitch = Math.cos(pitchRef.current);

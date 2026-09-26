@@ -13,6 +13,7 @@ import {
   type PlayerState,
   type EnvironmentCollider,
 } from './PlayerTypes';
+import { CheckpointManager } from '../../game/checkpoints/CheckpointManager';
 
 export interface PlayerControllerProps {
   initialPosition?: [number, number, number];
@@ -89,6 +90,22 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
 
   const bindQuatsRef = useRef<Map<string, THREE.Quaternion>>(new Map());
   const bindPositionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
+
+  // Register Checkpoint Respawn Handler (snaps player instantly without desync)
+  useEffect(() => {
+    const unregister = CheckpointManager.registerRespawnHandler((targetPos) => {
+      pos.current.copy(targetPos);
+      vel.current.set(0, 0, 0);
+      isGroundedRef.current = true;
+      climbingWallTimerRef.current = 0;
+      isClimbingLadderRef.current = false;
+      activeLadderRef.current = null;
+      if (physicsBodyRef.current) {
+        physicsBodyRef.current.position.copy(targetPos);
+      }
+    });
+    return () => unregister();
+  }, []);
 
   const handleModelReady = useCallback((
     model: THREE.Group,
@@ -477,9 +494,25 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
       isGroundedRef.current = false;
     }
 
+    // ── FALL & OUT-OF-BOUNDS RECOVERY ──
+    // If player is on rooftop progression and falls back down to ground, or falls into void / boundary
+    const isHighRooftopProgression = CheckpointManager.lastSafePos.y > 2.0;
+    if (
+      (isHighRooftopProgression && proposedPos.y <= 0.35 && vel.current.y <= -2.5) ||
+      proposedPos.y < -0.4 ||
+      Math.abs(proposedPos.x) > 24.3 ||
+      Math.abs(proposedPos.z) > 24.3
+    ) {
+      CheckpointManager.requestRespawn('Fell from rooftops');
+      return;
+    }
+
     pos.current.copy(proposedPos);
 
-    // 11. Update Physics Body Transform in Scene
+    // 11. Feed Player Coordinates into CheckpointManager for instantaneous 0ms detection
+    CheckpointManager.updatePlayerPos(pos.current.x, pos.current.y, pos.current.z);
+
+    // 12. Update Physics Body Transform in Scene
     if (physicsBodyRef.current) {
       physicsBodyRef.current.position.copy(pos.current);
     }
