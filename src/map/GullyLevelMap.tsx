@@ -15,6 +15,7 @@ import { LEVEL_1_LANDMARKS } from './data/mapLayoutData';
 import { WorldAtmosphere } from './environment';
 import type { LightingPreset } from './environment/EnvironmentPerformance';
 import { Html } from '@react-three/drei';
+import { CheckpointsSystem } from '../components/gameplay/CheckpointsSystem';
 
 // ─── GROUND FIX ────────────────────────────────────────────────────────────
 // Plinth (0.24m) was removed. House internals still offset by +0.24 inside.
@@ -379,6 +380,9 @@ interface GullyLevelMapProps {
   showPitchMarkings?: boolean;
   includeAtmosphere?: boolean;
   lightingPreset?: LightingPreset;
+  showCheckpoints?: boolean;
+  onCheckpointReached?: (id: number) => void;
+  onBallRetrieved?: () => void;
 }
 
 export const GullyLevelMap: React.FC<GullyLevelMapProps> = ({
@@ -387,6 +391,9 @@ export const GullyLevelMap: React.FC<GullyLevelMapProps> = ({
   showPitchMarkings = true,
   includeAtmosphere = true,
   lightingPreset = 'afternoon',
+  showCheckpoints = true,
+  onCheckpointReached,
+  onBallRetrieved,
 }) => {
   const HN: React.FC<{ n: number; pos: [number, number, number]; c?: string }> = ({ n, pos, c }) => (
     <HouseNumberBadge n={n} pos={pos} c={c} show={showZoneLabels} />
@@ -401,6 +408,14 @@ export const GullyLevelMap: React.FC<GullyLevelMapProps> = ({
       <BoundaryWalls />
       <SocietyExitGate position={[-19.5, 0, -14.5]} rotation={[0, 0, 0]} />
       <GullyStreetEnvironment />
+
+      {/* 5 High-Visibility Checkpoints & Beacons leading to the Ball */}
+      {showCheckpoints && (
+        <CheckpointsSystem
+          onCheckpointReached={onCheckpointReached}
+          onBallRetrieved={onBallRetrieved}
+        />
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           NORTH ROW — rotation [0, 0, 0], front faces south (+Z)
