@@ -5,6 +5,8 @@ import { GullyLevelMap } from '../map/GullyLevelMap';
 import { Player } from '../components/player/Player';
 import { getLevel1MapColliders } from '../map/data/mapLayoutData';
 import { LoadingScreen } from './LoadingScreen';
+import { GameControlsOverlay } from './GameControlsOverlay';
+import { DesynchronizedOverlay } from './DesynchronizedOverlay';
 
 /**
  * 100% Immersive Fullscreen Indian Gully Game View
@@ -41,6 +43,12 @@ export const ImmersiveGameView: React.FC = () => {
       {!isPlaying && (
         <LoadingScreen onStartGame={handleStartGame} />
       )}
+
+      {/* In-Game Controls HUD Overlay on start */}
+      {isPlaying && <GameControlsOverlay />}
+
+      {/* Cinematic 2-Second GTA-Style Desynchronized Respawn Screen */}
+      {isPlaying && <DesynchronizedOverlay />}
 
       {/* Main 3D WebGL Canvas */}
       <Canvas

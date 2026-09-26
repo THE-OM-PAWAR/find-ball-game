@@ -123,6 +123,13 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
   useFrame((_, delta) => {
     if (!enabled) return;
 
+    // Freeze inputs and character physics during 2-second desync transition
+    if (CheckpointManager.isDesyncing) {
+      vel.current.set(0, 0, 0);
+      if (visualState !== 'IDLE') setVisualState('IDLE');
+      return;
+    }
+
     const dt = Math.min(delta, 0.05);
 
     // 1. Consume Mouse Look Delta for Camera

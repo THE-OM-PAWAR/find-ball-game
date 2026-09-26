@@ -63,10 +63,12 @@ class CheckpointManagerService {
   public playerPos: THREE.Vector3 = new THREE.Vector3(0, 0.2, 14);
   public notification: string | null = null;
   public respawnCount: number = 0;
+  public isDesyncing: boolean = false;
   
   private listeners: Set<CheckpointListener> = new Set();
   private notificationTimer: ReturnType<typeof setTimeout> | null = null;
   private respawnHandlers: Set<(pos: THREE.Vector3) => void> = new Set();
+  private desyncHandlers: Set<() => void> = new Set();
 
   public subscribe(listener: CheckpointListener): () => void {
     this.listeners.add(listener);
@@ -89,6 +91,13 @@ class CheckpointManagerService {
     };
   }
 
+  public registerDesyncEvent(handler: () => void): () => void {
+    this.desyncHandlers.add(handler);
+    return () => {
+      this.desyncHandlers.delete(handler);
+    };
+  }
+
   public updatePlayerPos(x: number, y: number, z: number) {
     this.playerPos.set(x, y, z);
     this.checkProximity(x, y, z);
@@ -99,6 +108,7 @@ class CheckpointManagerService {
    * Runs in O(1) time per frame.
    */
   private checkProximity(px: number, py: number, pz: number) {
+    if (this.isDesyncing) return;
     if (this.activeId > GULLY_CHECKPOINTS.length) return;
 
     const cp = GULLY_CHECKPOINTS.find((c) => c.id === this.activeId);
@@ -117,7 +127,7 @@ class CheckpointManagerService {
   }
 
   public reachCheckpoint(cp: CheckpointData) {
-    if (this.completed.has(cp.id)) return;
+    if (this.completed.has(cp.id) || this.isDesyncing) return;
 
     this.completed.add(cp.id);
     // Update safe spawn position (ensure feet are right above floor)
@@ -128,25 +138,38 @@ class CheckpointManagerService {
       this.setBanner('🎉 MISSION ACCOMPLISHED: LOST BALL RETRIEVED!');
       this.playSound(true);
     } else {
-      this.setBanner(`✓ CHECKPOINT ${cp.id}/5 REACHED: ${cp.name}`);
+      this.setBanner(`✓ CHECKPOINT ${cp.id}/5 REACHED`);
       this.playSound(false);
     }
 
     this.notify();
   }
 
-  public requestRespawn(reason: string = 'Fell off rooftops') {
+  public requestRespawn(_reason: string = 'Fell off rooftops') {
+    if (this.isDesyncing) return;
+    this.isDesyncing = true;
     this.respawnCount++;
-    this.setBanner(`↺ RESTARTING FROM LAST CHECKPOINT: ${reason}`);
-    
-    // Teleport player & camera immediately to last safe checkpoint
-    const targetPos = this.lastSafePos.clone();
-    this.respawnHandlers.forEach((handler) => {
-      handler(targetPos);
-    });
+
+    // 1. Immediately trigger black-and-white desynchronized screen animation
+    this.desyncHandlers.forEach((handler) => handler());
+
+    // 2. Reposition player at 1.2s while screen is fully black/grayscale
+    setTimeout(() => {
+      const targetPos = this.lastSafePos.clone();
+      this.respawnHandlers.forEach((handler) => {
+        handler(targetPos);
+      });
+    }, 1200);
+
+    // 3. Unlock controls and restore normal gameplay at 2.0s
+    setTimeout(() => {
+      this.isDesyncing = false;
+      this.notify();
+    }, 2000);
 
     this.notify();
   }
+
 
   private setBanner(text: string) {
     this.notification = text;
