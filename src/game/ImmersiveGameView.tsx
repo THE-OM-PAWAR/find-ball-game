@@ -1,20 +1,27 @@
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense, useMemo, useState, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import * as THREE from 'three';
 import { GullyLevelMap } from '../map/GullyLevelMap';
 import { Player } from '../components/player/Player';
 import { getLevel1MapColliders } from '../map/data/mapLayoutData';
+import { LoadingScreen } from './LoadingScreen';
 
 /**
  * 100% Immersive Fullscreen Indian Gully Game View
- * Zero UI, zero overlays, immediate gameplay with 60 FPS performance
+ * With production loading screen, zero game UI during play, and 60 FPS performance
  */
 export const ImmersiveGameView: React.FC = () => {
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+
   // Precompute colliders once for optimal runtime performance
   const mapColliders = useMemo(() => getLevel1MapColliders(), []);
 
   // Player initial spawn in south central gully corridor facing north
   const initialSpawn: [number, number, number] = [0, 0.2, 14];
+
+  const handleStartGame = useCallback(() => {
+    setIsPlaying(true);
+  }, []);
 
   return (
     <div
@@ -27,17 +34,24 @@ export const ImmersiveGameView: React.FC = () => {
         background: '#090d16',
         overflow: 'hidden',
         userSelect: 'none',
-        cursor: 'crosshair',
+        cursor: isPlaying ? 'crosshair' : 'default',
       }}
     >
+      {/* Production Loading Screen & Title Intro */}
+      {!isPlaying && (
+        <LoadingScreen onStartGame={handleStartGame} />
+      )}
+
+      {/* Main 3D WebGL Canvas */}
       <Canvas
         shadows
         camera={{ position: [0, 1.8, 17.5], fov: 54 }}
-        dpr={[1, 1.5]}
+        dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.75)]}
         gl={{
           antialias: true,
           alpha: false,
           powerPreference: 'high-performance',
+          stencil: false,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.12,
         }}
@@ -73,3 +87,4 @@ export const ImmersiveGameView: React.FC = () => {
 };
 
 export default ImmersiveGameView;
+
