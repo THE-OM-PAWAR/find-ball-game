@@ -9,13 +9,16 @@ import { GameControlsOverlay } from './GameControlsOverlay';
 import { DesynchronizedOverlay } from './DesynchronizedOverlay';
 import { GameCompletionModal } from './GameCompletionModal';
 import { BallPickupCinematicOverlay } from './BallPickupCinematicOverlay';
+import { IntroSequence } from '../cinematic/IntroSequence';
+
+export type GameState = 'loading' | 'cinematic' | 'gameplay';
 
 /**
  * 100% Immersive Fullscreen Indian Gully Game View
- * With production loading screen, zero game UI during play, and 60 FPS performance
+ * With production loading screen, 3D cinematic opening sequence, and 60 FPS gameplay
  */
 export const ImmersiveGameView: React.FC = () => {
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [gameState, setGameState] = useState<GameState>('loading');
 
   // Precompute colliders once for optimal runtime performance
   const mapColliders = useMemo(() => getLevel1MapColliders(), []);
@@ -23,8 +26,12 @@ export const ImmersiveGameView: React.FC = () => {
   // Player initial spawn in south central gully corridor facing north
   const initialSpawn: [number, number, number] = [0, 0.2, 14];
 
-  const handleStartGame = useCallback(() => {
-    setIsPlaying(true);
+  const handleStartFromLoading = useCallback(() => {
+    setGameState('cinematic');
+  }, []);
+
+  const handleCinematicComplete = useCallback(() => {
+    setGameState('gameplay');
   }, []);
 
   return (
@@ -38,30 +45,28 @@ export const ImmersiveGameView: React.FC = () => {
         background: '#090d16',
         overflow: 'hidden',
         userSelect: 'none',
-        cursor: isPlaying ? 'crosshair' : 'default',
+        cursor: gameState === 'gameplay' ? 'crosshair' : 'default',
       }}
     >
-      {/* Production Loading Screen & Title Intro */}
-      {!isPlaying && (
-        <LoadingScreen onStartGame={handleStartGame} />
+      {/* 1. Production Loading Screen & Title Intro */}
+      {gameState === 'loading' && (
+        <LoadingScreen onStartGame={handleStartFromLoading} />
       )}
 
-      {/* In-Game Controls HUD Overlay on start */}
-      {isPlaying && <GameControlsOverlay />}
+      {/* 2. In-Game HUD Overlays during active gameplay */}
+      {gameState === 'gameplay' && (
+        <>
+          <GameControlsOverlay />
+          <DesynchronizedOverlay />
+          <GameCompletionModal />
+          <BallPickupCinematicOverlay />
+        </>
+      )}
 
-      {/* Cinematic 2-Second GTA-Style Desynchronized Respawn Screen */}
-      {isPlaying && <DesynchronizedOverlay />}
-
-      {/* Celebratory Victory & Game Completion Animation Modal */}
-      {isPlaying && <GameCompletionModal />}
-
-      {/* Cinematic Ball Pick-Up Cutscene Overlay at 5th Checkpoint */}
-      {isPlaying && <BallPickupCinematicOverlay />}
-
-      {/* Main 3D WebGL Canvas */}
+      {/* 3. Main 3D WebGL Canvas */}
       <Canvas
         shadows
-        camera={{ position: [0, 1.8, 17.5], fov: 54 }}
+        camera={{ position: [0, 8.5, 22.0], fov: 54 }}
         dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 1, 1.75)]}
         gl={{
           antialias: true,
@@ -78,24 +83,32 @@ export const ImmersiveGameView: React.FC = () => {
             showWaypoints={false}
             showZoneLabels={false}
             showPitchMarkings={true}
+            showCheckpoints={gameState === 'gameplay'}
             lightingPreset="afternoon"
             includeAtmosphere={true}
           />
 
-          {/* Active 3D Player Character with Full WASD + Mouse Look Controller */}
-          <Player
-            initialPosition={initialSpawn}
-            colliders={mapColliders}
-            playerParams={{
-              walkSpeed: 2.5,
-              runSpeed: 5.2,
-              sprintSpeed: 8.0,
-              jumpForce: 6.8,
-              stepHeight: 0.42,
-              airControl: 0.65,
-              gravity: 17.0,
-            }}
-          />
+          {/* Phase 5: Cinematic Intro Sequence */}
+          {gameState === 'cinematic' && (
+            <IntroSequence onComplete={handleCinematicComplete} />
+          )}
+
+          {/* Active Gameplay Player Character */}
+          {gameState === 'gameplay' && (
+            <Player
+              initialPosition={initialSpawn}
+              colliders={mapColliders}
+              playerParams={{
+                walkSpeed: 2.5,
+                runSpeed: 5.2,
+                sprintSpeed: 8.0,
+                jumpForce: 6.8,
+                stepHeight: 0.42,
+                airControl: 0.65,
+                gravity: 17.0,
+              }}
+            />
+          )}
         </Suspense>
       </Canvas>
     </div>
@@ -103,4 +116,5 @@ export const ImmersiveGameView: React.FC = () => {
 };
 
 export default ImmersiveGameView;
+
 
