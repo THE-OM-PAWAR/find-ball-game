@@ -12,14 +12,10 @@ export type PlayerState =
   | 'CROUCH_WALK'
   | 'JUMP'
   | 'FALL'
-  | 'LAND'
-  | 'HIT_REACTION'
-  | 'BATTING_STANCE'
-  | 'BATTING_SHOT'
-  | 'BOWLING_RUNUP';
+  | 'LAND';
 
 /**
- * Keyboard / Mouse / Touch Input State
+ * Keyboard & Mouse Look Input State
  */
 export interface PlayerInputState {
   forward: boolean;
@@ -29,15 +25,13 @@ export interface PlayerInputState {
   sprint: boolean;
   crouch: boolean;
   jump: boolean;
-  action: boolean; // Cricket swing / interact
-  specialAction: boolean; // Throw ball / celebrate
   pointerLocked: boolean;
   mouseDeltaX: number;
   mouseDeltaY: number;
 }
 
 /**
- * Real-time Physics & Movement Telemetry (for HUD without triggering React re-renders)
+ * Real-time Physics & Controller Telemetry (used via refs to avoid React re-renders)
  */
 export interface PlayerTelemetry {
   position: THREE.Vector3;
@@ -45,113 +39,89 @@ export interface PlayerTelemetry {
   horizontalSpeed: number;
   state: PlayerState;
   isGrounded: boolean;
-  isOnSlope: boolean;
-  slopeAngleDeg: number;
-  stamina: number;
+  isCrouching: boolean;
   facingAngle: number;
+  colliderHeight: number;
 }
 
 /**
- * Player Physical Properties & Controller Parameters
+ * Kinematic Controller & Capsule Physical Parameters
  */
 export interface PlayerControllerParams {
-  height: number;           // 1.76m (standard teen athlete height)
-  radius: number;           // 0.30m capsule collision radius
-  walkSpeed: number;        // 2.2 m/s
-  runSpeed: number;         // 4.6 m/s
-  sprintSpeed: number;      // 7.2 m/s
-  crouchSpeed: number;      // 1.4 m/s
-  jumpForce: number;        // 6.2 m/s
-  gravity: number;          // 19.6 m/s² (crisp game feel)
-  airControl: number;       // 0.45
-  acceleration: number;     // 18 m/s²
-  deceleration: number;     // 22 m/s²
-  rotationSpeed: number;    // 14 rad/s
-  maxSlopeAngleDeg: number; // 48 degrees
-  stepHeight: number;       // 0.35m
+  standingHeight: number; // 1.80m capsule height
+  crouchingHeight: number; // 1.15m crouch capsule height
+  radius: number;          // 0.32m capsule radius
+  walkSpeed: number;       // 2.2 m/s
+  runSpeed: number;        // 4.6 m/s
+  sprintSpeed: number;     // 7.2 m/s
+  crouchSpeed: number;     // 1.4 m/s
+  jumpForce: number;       // 6.0 m/s
+  gravity: number;         // 18.0 m/s²
+  airControl: number;      // 0.40
+  acceleration: number;    // 18.0 m/s²
+  deceleration: number;    // 22.0 m/s²
+  rotationSpeed: number;   // 14.0 rad/s
+  stepHeight: number;      // 0.35m max climbable step
 }
 
 export const DEFAULT_PLAYER_PARAMS: PlayerControllerParams = {
-  height: 1.76,
+  standingHeight: 1.80,
+  crouchingHeight: 1.15,
   radius: 0.32,
   walkSpeed: 2.2,
-  runSpeed: 4.8,
-  sprintSpeed: 7.4,
+  runSpeed: 4.6,
+  sprintSpeed: 7.2,
   crouchSpeed: 1.4,
-  jumpForce: 6.2,
-  gravity: 19.6,
-  airControl: 0.45,
-  acceleration: 20.0,
-  deceleration: 24.0,
-  rotationSpeed: 16.0,
-  maxSlopeAngleDeg: 48,
+  jumpForce: 6.0,
+  gravity: 18.0,
+  airControl: 0.40,
+  acceleration: 18.0,
+  deceleration: 22.0,
+  rotationSpeed: 14.0,
   stepHeight: 0.35,
 };
 
 /**
- * Third-Person Camera Configuration
+ * Third-Person Orbit Follow Camera Configuration
  */
 export interface ThirdPersonCameraParams {
-  distance: number;          // Default 3.4m behind player
-  minDistance: number;       // 1.0m
-  maxDistance: number;       // 6.5m
-  height: number;            // 1.45m above player base
-  shoulderOffset: number;    // 0.25m right shoulder offset
-  fov: number;               // 48 deg base FOV
-  sprintFov: number;         // 56 deg during sprint
-  pitchMin: number;          // -40 deg
-  pitchMax: number;          // +70 deg
-  sensitivityX: number;      // 0.0028
-  sensitivityY: number;      // 0.0022
-  damping: number;           // 0.12
-  collisionRadius: number;   // 0.18m
+  distance: number;        // Target distance behind player (meters)
+  minDistance: number;     // Minimum zoomed-in distance (meters)
+  maxDistance: number;     // Maximum zoomed-out distance (meters)
+  height: number;          // Camera focal target height above player feet (meters)
+  shoulderOffset: number;  // Lateral shoulder offset
+  fov: number;             // Default field of view (degrees)
+  sprintFov: number;       // Field of view when sprinting (degrees)
+  pitchMin: number;        // Lowest pitch limit (degrees)
+  pitchMax: number;        // Highest pitch limit (degrees)
+  sensitivityX: number;    // Horizontal mouse sensitivity
+  sensitivityY: number;    // Vertical mouse sensitivity
+  damping: number;         // Damping factor for smooth camera lag
 }
 
 export const DEFAULT_CAMERA_PARAMS: ThirdPersonCameraParams = {
-  distance: 3.2,
-  minDistance: 1.0,
-  maxDistance: 6.0,
-  height: 1.4,
-  shoulderOffset: 0.22,
-  fov: 46,
-  sprintFov: 54,
+  distance: 3.5,
+  minDistance: 1.2,
+  maxDistance: 7.0,
+  height: 1.45,
+  shoulderOffset: 0.15,
+  fov: 48,
+  sprintFov: 56,
   pitchMin: -35,
   pitchMax: 65,
   sensitivityX: 0.003,
   sensitivityY: 0.0024,
   damping: 0.14,
-  collisionRadius: 0.18,
 };
 
 /**
- * Character Visual Customization
+ * Environment Collision Box/Cylinder
  */
-export interface PlayerAppearanceConfig {
-  skinTone: string;
-  hairColor: string;
-  jerseyColor: string;
-  jerseyAccentColor: string;
-  jerseyNumber: string;
-  shortsColor: string;
-  shoesColor: string;
-  hasCap: boolean;
-  hasGloves: boolean;
-  hasWristBand: boolean;
-  hasBat: boolean;
-  batWoodTone: 'kashmir-willow' | 'english-willow' | 'gully-tape';
+export interface EnvironmentCollider {
+  type: 'box' | 'cylinder';
+  min?: THREE.Vector3;
+  max?: THREE.Vector3;
+  center?: THREE.Vector3;
+  radius?: number;
+  height?: number;
 }
-
-export const DEFAULT_APPEARANCE: PlayerAppearanceConfig = {
-  skinTone: '#c68642',
-  hairColor: '#171717',
-  jerseyColor: '#1d4ed8',
-  jerseyAccentColor: '#f59e0b',
-  jerseyNumber: '18',
-  shortsColor: '#1e293b',
-  shoesColor: '#f8fafc',
-  hasCap: true,
-  hasGloves: true,
-  hasWristBand: true,
-  hasBat: true,
-  batWoodTone: 'kashmir-willow',
-};

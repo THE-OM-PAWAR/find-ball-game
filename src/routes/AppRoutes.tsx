@@ -14,7 +14,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/studio/bikes" element={<StudioLayout />} />
         <Route path="/studio/rooftops" element={<StudioLayout />} />
         <Route path="/studio/props" element={<StudioLayout />} />
-        <Route path="/studio/character" element={<StudioLayout />} />
+        <Route path="/studio/player" element={<StudioLayout />} />
         <Route path="/studio/lighting" element={<StudioLayout />} />
 
         {/* Studio Root Redirect */}

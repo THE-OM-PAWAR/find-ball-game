@@ -967,3 +967,101 @@ body, html {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Slider Controls for Player Playground & Tuning */
+.slider-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: all 0.15s ease;
+}
+
+.slider-row:hover {
+  background-color: var(--bg-muted);
+  border-color: #cbd5e1;
+}
+
+.slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.slider-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.slider-value {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #0f172a;
+  background: var(--bg-muted);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.studio-range-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #cbd5e1;
+  outline: none;
+  cursor: pointer;
+  margin: 4px 0 2px;
+}
+
+.studio-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0f172a;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.studio-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.studio-range-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0f172a;
+  cursor: pointer;
+  border: none;
+}
+
+.info-box-playground {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.info-box-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 11.5px;
+}
+

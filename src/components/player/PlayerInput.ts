@@ -9,8 +9,6 @@ export class PlayerInputManager {
     sprint: false,
     crouch: false,
     jump: false,
-    action: false,
-    specialAction: false,
     pointerLocked: false,
     mouseDeltaX: 0,
     mouseDeltaY: 0,
@@ -70,12 +68,6 @@ export class PlayerInputManager {
     }
   }
 
-  public exitPointerLock() {
-    if (document.pointerLockElement) {
-      document.exitPointerLock();
-    }
-  }
-
   public getState(): PlayerInputState {
     return { ...this.state };
   }
@@ -125,12 +117,6 @@ export class PlayerInputManager {
         this.state.jump = true;
         e.preventDefault();
         break;
-      case 'KeyE':
-        this.state.action = true;
-        break;
-      case 'KeyR':
-        this.state.specialAction = true;
-        break;
     }
   }
 
@@ -166,12 +152,6 @@ export class PlayerInputManager {
       case 'Space':
         this.state.jump = false;
         break;
-      case 'KeyE':
-        this.state.action = false;
-        break;
-      case 'KeyR':
-        this.state.specialAction = false;
-        break;
     }
   }
 
@@ -196,14 +176,6 @@ export class PlayerInputManager {
     this.isPointerDown = true;
     this.lastPointerX = e.clientX;
     this.lastPointerY = e.clientY;
-
-    if (e.button === 0) {
-      // Left click action trigger
-      this.state.action = true;
-      setTimeout(() => {
-        this.state.action = false;
-      }, 250);
-    }
   }
 
   private handlePointerUp(_e: PointerEvent) {
@@ -223,8 +195,6 @@ export class PlayerInputManager {
       sprint: false,
       crouch: false,
       jump: false,
-      action: false,
-      specialAction: false,
       pointerLocked: false,
       mouseDeltaX: 0,
       mouseDeltaY: 0,
