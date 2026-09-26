@@ -40,7 +40,16 @@ export const LoadingScreen: React.FC<LoadingScreenProps> = ({ onStartGame, autoS
       });
     }, 30);
 
-    return () => clearInterval(timer);
+    // Guaranteed fallback: ensures button appears even on instant cache or CDN response
+    const fallbackTimer = setTimeout(() => {
+      setDisplayProgress(100);
+      setIsLoaded(true);
+    }, 2800);
+
+    return () => {
+      clearInterval(timer);
+      clearTimeout(fallbackTimer);
+    };
   }, [progress, active]);
 
   // Rotate fun gully tips
