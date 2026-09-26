@@ -21,7 +21,10 @@ export const StudioLayout: React.FC = () => {
     activeCategory,
     searchQuery,
     setSearchQuery,
+    isLevelView,
     isPlayerView,
+    isDogView,
+    isNatureView,
     isVehicleView,
     getModelTitle,
     cameraPreset,
@@ -49,7 +52,10 @@ export const StudioLayout: React.FC = () => {
       <div className="main-viewport-wrapper">
         {/* Top Header & Action Toolbar */}
         <StudioHeader
+          isLevelView={isLevelView}
           isPlayerView={isPlayerView}
+          isDogView={isDogView}
+          isNatureView={isNatureView}
           isVehicleView={isVehicleView}
           activeCategory={activeCategory}
           modelTitle={getModelTitle()}

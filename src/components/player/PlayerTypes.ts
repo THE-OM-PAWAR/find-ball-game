@@ -71,7 +71,7 @@ export const DEFAULT_PLAYER_PARAMS: PlayerControllerParams = {
   walkSpeed: 2.2,
   runSpeed: 4.6,
   sprintSpeed: 7.2,
-  crouchSpeed: 1.4,
+  crouchSpeed: 1.6,
   jumpForce: 6.0,
   gravity: 18.0,
   airControl: 0.40,

@@ -595,3 +595,6 @@ export const ACUnit: React.FC<{
     </group>
   );
 };
+
+// Re-export production-grade Nature Props (SmallTree, LargeTree, PottedPlant, Bush, GrassPatch, FallenLeaves)
+export * from './NatureProps';

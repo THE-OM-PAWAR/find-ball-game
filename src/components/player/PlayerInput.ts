@@ -83,6 +83,8 @@ export class PlayerInputManager {
     return { deltaX, deltaY };
   }
 
+  private toggleCrouchState = false;
+
   private handleKeyDown(e: KeyboardEvent) {
     if (!this.enabled) return;
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -107,14 +109,26 @@ export class PlayerInputManager {
       case 'ShiftLeft':
       case 'ShiftRight':
         this.state.sprint = true;
+        // Sprinting auto-cancels crouch toggle for fluid transition
+        this.toggleCrouchState = false;
+        this.state.crouch = false;
+        break;
+      case 'KeyC':
+        // Tap C to toggle crouch
+        this.toggleCrouchState = !this.toggleCrouchState;
+        this.state.crouch = this.toggleCrouchState;
         break;
       case 'ControlLeft':
       case 'ControlRight':
-      case 'KeyC':
+      case 'MetaLeft':
+      case 'MetaRight':
         this.state.crouch = true;
         break;
       case 'Space':
         this.state.jump = true;
+        // Jumping auto-cancels crouch toggle
+        this.toggleCrouchState = false;
+        this.state.crouch = false;
         e.preventDefault();
         break;
     }
@@ -146,8 +160,12 @@ export class PlayerInputManager {
         break;
       case 'ControlLeft':
       case 'ControlRight':
-      case 'KeyC':
-        this.state.crouch = false;
+      case 'MetaLeft':
+      case 'MetaRight':
+        // If not in toggle crouch mode, release crouch
+        if (!this.toggleCrouchState) {
+          this.state.crouch = false;
+        }
         break;
       case 'Space':
         this.state.jump = false;

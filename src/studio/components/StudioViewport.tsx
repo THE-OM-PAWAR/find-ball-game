@@ -1,7 +1,10 @@
 import React from 'react';
 import { HouseStudio } from './HouseStudio';
 import { VehicleStudio } from './VehicleStudio';
+import { NatureStudio } from './NatureStudio';
+import { DogStudio } from './DogStudio';
 import { PlayerPlaygroundStudio } from './PlayerPlaygroundStudio';
+import { LevelBlueprintStudio } from './LevelBlueprintStudio';
 import type { StudioState } from '../hooks/useStudioState';
 
 interface StudioViewportProps {
@@ -10,12 +13,25 @@ interface StudioViewportProps {
 
 export const StudioViewport: React.FC<StudioViewportProps> = ({ state }) => {
   const {
+    isLevelView,
+    levelConfig,
     isPlayerView,
+    isDogView,
+    isNatureView,
     isVehicleView,
     lightingPreset,
     playerParams,
     cameraParams,
     showColliderDebug,
+    dogConfig,
+    showDogDebug,
+    natureType,
+    smallTreeConfig,
+    largeTreeConfig,
+    pottedPlantConfig,
+    bushConfig,
+    grassPatchConfig,
+    fallenLeavesConfig,
     vehicleType,
     scooterConfig,
     motorcycleConfig,
@@ -40,12 +56,39 @@ export const StudioViewport: React.FC<StudioViewportProps> = ({ state }) => {
 
   return (
     <div className="canvas-frame">
-      {isPlayerView ? (
+      {isLevelView ? (
+        <LevelBlueprintStudio
+          lightingPreset={lightingPreset}
+          showMarkers={levelConfig.showMarkers}
+          showRoutes={true}
+          showLabels={levelConfig.showLabels}
+          activeFilter={levelConfig.activeRouteFilter === 'dog_patrol' ? 'all' : (levelConfig.activeRouteFilter as any)}
+        />
+      ) : isPlayerView ? (
         <PlayerPlaygroundStudio
           lightingPreset={lightingPreset}
           playerParams={playerParams}
           cameraParams={cameraParams}
           showColliderDebug={showColliderDebug}
+        />
+      ) : isDogView ? (
+        <DogStudio
+          lightingPreset={lightingPreset}
+          dogConfig={dogConfig}
+          showDebug={showDogDebug}
+        />
+      ) : isNatureView ? (
+        <NatureStudio
+          natureType={natureType}
+          lightingPreset={lightingPreset}
+          smallTreeConfig={smallTreeConfig}
+          largeTreeConfig={largeTreeConfig}
+          pottedPlantConfig={pottedPlantConfig}
+          bushConfig={bushConfig}
+          grassPatchConfig={grassPatchConfig}
+          fallenLeavesConfig={fallenLeavesConfig}
+          autoRotate={autoRotate}
+          cameraPreset={cameraPreset}
         />
       ) : isVehicleView ? (
         <VehicleStudio
@@ -82,8 +125,8 @@ export const StudioViewport: React.FC<StudioViewportProps> = ({ state }) => {
 
       {/* Bottom Overlay Hint */}
       <div className="viewport-overlay-hint">
-        {isPlayerView ? (
-          <span>Click inside 3D viewport to lock mouse • <kbd>W A S D</kbd> Move • <kbd>Shift</kbd> Sprint • <kbd>Ctrl</kbd> Crouch • <kbd>Space</kbd> Jump</span>
+        {isPlayerView || isDogView ? (
+          <span>Click inside 3D viewport to lock mouse • <kbd>W A S D</kbd> Move • <kbd>Shift</kbd> Sprint • <kbd>Ctrl</kbd> Crouch Sneak • <kbd>B</kbd> Throw Biscuit</span>
         ) : (
           <span>Hold <kbd>Shift</kbd> + Click to bowl a tennis ball anywhere</span>
         )}

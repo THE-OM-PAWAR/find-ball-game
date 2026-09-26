@@ -3,7 +3,10 @@ import { SlidersHorizontal, Ruler } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/Tabs';
 import { HouseInspectorTab1, HouseInspectorTab2 } from './HouseInspectorTabs';
 import { VehicleInspectorTab1, VehicleInspectorTab2 } from './VehicleInspectorTabs';
+import { NatureInspectorTab1, NatureInspectorTab2 } from './NatureInspectorTabs';
+import { DogInspectorTab1, DogInspectorTab2 } from './DogInspectorTabs';
 import { PlayerInspectorTab1, PlayerInspectorTab2 } from './PlayerInspectorTabs';
+import { LevelBlueprintInspectorTab1, LevelBlueprintInspectorTab2 } from './LevelBlueprintInspectorTabs';
 import { LightingInspectorTab } from './LightingInspectorTab';
 import type { StudioState } from '../../hooks/useStudioState';
 
@@ -13,7 +16,12 @@ interface StudioInspectorProps {
 
 export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
   const {
+    isLevelView,
+    levelConfig,
+    setLevelConfig,
     isPlayerView,
+    isDogView,
+    isNatureView,
     isVehicleView,
     getDimensionsText,
     houseType,
@@ -34,6 +42,25 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
     setShop2Config,
     shop3Config,
     setShop3Config,
+    dogConfig,
+    setDogConfig,
+    showDogDebug,
+    setShowDogDebug,
+    natureType,
+    setNatureType,
+    smallTreeConfig,
+    setSmallTreeConfig,
+    largeTreeConfig,
+    setLargeTreeConfig,
+    pottedPlantConfig,
+    setPottedPlantConfig,
+    bushConfig,
+    setBushConfig,
+    grassPatchConfig,
+    setGrassPatchConfig,
+    fallenLeavesConfig,
+    setFallenLeavesConfig,
+    applyBotanicalPalette,
     vehicleType,
     setVehicleType,
     scooterConfig,
@@ -84,19 +111,42 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
       <Tabs defaultValue="geometry" className="radix-tabs-root">
         <TabsList className="radix-tabs-list">
           <TabsTrigger value="geometry" className="radix-tabs-trigger">
-            {isPlayerView ? 'Movement & Physics' : isVehicleView ? 'Props & Vehicles' : 'Architecture'}
+            {isLevelView
+              ? 'Level Traversal'
+              : isPlayerView
+              ? 'Movement & Physics'
+              : isDogView
+              ? 'AI Behavior'
+              : isNatureView
+              ? 'Botanical Props'
+              : isVehicleView
+              ? 'Props & Vehicles'
+              : 'Architecture'}
           </TabsTrigger>
           <TabsTrigger value="props" className="radix-tabs-trigger">
-            {isPlayerView ? 'Camera & Debug' : 'Props & Tuning'}
+            {isLevelView
+              ? 'Overlays & Specs'
+              : isPlayerView
+              ? 'Camera & Debug'
+              : isDogView
+              ? 'Sensors & Debug'
+              : isNatureView
+              ? 'Density & Scatter'
+              : 'Props & Tuning'}
           </TabsTrigger>
           <TabsTrigger value="lighting" className="radix-tabs-trigger">
             Lighting
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab 1: Primary Selection & Poses */}
+        {/* Tab 1: Primary Selection & Behavior */}
         <TabsContent value="geometry" className="radix-tabs-content">
-          {isPlayerView ? (
+          {isLevelView ? (
+            <LevelBlueprintInspectorTab1
+              config={levelConfig}
+              onConfigChange={setLevelConfig}
+            />
+          ) : isPlayerView ? (
             <PlayerInspectorTab1
               playerParams={playerParams}
               onPlayerParamsChange={setPlayerParams}
@@ -104,6 +154,31 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
               onCameraParamsChange={setCameraParams}
               showColliderDebug={showColliderDebug}
               onShowColliderDebugChange={setShowColliderDebug}
+            />
+          ) : isDogView ? (
+            <DogInspectorTab1
+              dogConfig={dogConfig}
+              onDogConfigChange={setDogConfig}
+              showDebug={showDogDebug}
+              onShowDebugChange={setShowDogDebug}
+            />
+          ) : isNatureView ? (
+            <NatureInspectorTab1
+              natureType={natureType}
+              onNatureTypeChange={setNatureType}
+              smallTreeConfig={smallTreeConfig}
+              onSmallTreeConfigChange={setSmallTreeConfig}
+              largeTreeConfig={largeTreeConfig}
+              onLargeTreeConfigChange={setLargeTreeConfig}
+              pottedPlantConfig={pottedPlantConfig}
+              onPottedPlantConfigChange={setPottedPlantConfig}
+              bushConfig={bushConfig}
+              onBushConfigChange={setBushConfig}
+              grassPatchConfig={grassPatchConfig}
+              onGrassPatchConfigChange={setGrassPatchConfig}
+              fallenLeavesConfig={fallenLeavesConfig}
+              onFallenLeavesConfigChange={setFallenLeavesConfig}
+              onApplyBotanicalPalette={applyBotanicalPalette}
             />
           ) : isVehicleView ? (
             <VehicleInspectorTab1
@@ -151,9 +226,14 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
           )}
         </TabsContent>
 
-        {/* Tab 2: Accessories & Parameter Tuning */}
+        {/* Tab 2: Sensors & Tuning */}
         <TabsContent value="props" className="radix-tabs-content">
-          {isPlayerView ? (
+          {isLevelView ? (
+            <LevelBlueprintInspectorTab2
+              config={levelConfig}
+              onConfigChange={setLevelConfig}
+            />
+          ) : isPlayerView ? (
             <PlayerInspectorTab2
               playerParams={playerParams}
               onPlayerParamsChange={setPlayerParams}
@@ -161,6 +241,31 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
               onCameraParamsChange={setCameraParams}
               showColliderDebug={showColliderDebug}
               onShowColliderDebugChange={setShowColliderDebug}
+            />
+          ) : isDogView ? (
+            <DogInspectorTab2
+              dogConfig={dogConfig}
+              onDogConfigChange={setDogConfig}
+              showDebug={showDogDebug}
+              onShowDebugChange={setShowDogDebug}
+            />
+          ) : isNatureView ? (
+            <NatureInspectorTab2
+              natureType={natureType}
+              onNatureTypeChange={setNatureType}
+              smallTreeConfig={smallTreeConfig}
+              onSmallTreeConfigChange={setSmallTreeConfig}
+              largeTreeConfig={largeTreeConfig}
+              onLargeTreeConfigChange={setLargeTreeConfig}
+              pottedPlantConfig={pottedPlantConfig}
+              onPottedPlantConfigChange={setPottedPlantConfig}
+              bushConfig={bushConfig}
+              onBushConfigChange={setBushConfig}
+              grassPatchConfig={grassPatchConfig}
+              onGrassPatchConfigChange={setGrassPatchConfig}
+              fallenLeavesConfig={fallenLeavesConfig}
+              onFallenLeavesConfigChange={setFallenLeavesConfig}
+              onApplyBotanicalPalette={applyBotanicalPalette}
             />
           ) : isVehicleView ? (
             <VehicleInspectorTab2

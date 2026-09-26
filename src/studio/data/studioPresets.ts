@@ -3,6 +3,9 @@ import {
   Bike,
   Sun,
   User,
+  Trees,
+  Dog,
+  Map,
   Sparkles,
   CloudRain,
   Moon,
@@ -15,7 +18,10 @@ import type {
 } from '../types/studioTypes';
 
 export const STUDIO_CATEGORIES: StudioCategory[] = [
+  { id: 'level', name: 'Level 1 Blueprint', route: '/studio/level', icon: Map, count: '35m x 35m' },
   { id: 'houses', name: 'Houses & Complexes', route: '/studio/houses', icon: Home, count: '7 models' },
+  { id: 'nature', name: 'Nature & Foliage', route: '/studio/nature', icon: Trees, count: '6 props' },
+  { id: 'dog', name: 'Dog AI & Stealth', route: '/studio/dog', icon: Dog, count: 'AI Gameplay' },
   { id: 'bikes', name: 'Vehicles & Street Props', route: '/studio/bikes', icon: Bike, count: '8 street props' },
   { id: 'player', name: 'Player Playground', route: '/studio/player', icon: User, count: 'QA Sandbox' },
   { id: 'lighting', name: 'Atmosphere & Sky', route: '/studio/lighting', icon: Sun, count: '4 presets' },

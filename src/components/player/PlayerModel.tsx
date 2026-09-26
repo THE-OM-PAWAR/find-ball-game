@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { SkeletonUtils } from 'three-stdlib';
 import type { PlayerState } from './PlayerTypes';
 
-export const GLB_CHARACTER_PATH = '/X Bot.fbx.glb';
+export const GLB_CHARACTER_PATH = '/Ch38_nonPBR.fbx.glb';
 
 interface PlayerModelProps {
   state?: PlayerState;
@@ -12,12 +12,17 @@ interface PlayerModelProps {
   horizontalSpeed?: number;
   isGrounded?: boolean;
   isCrouching: boolean;
-  onModelReady?: (model: THREE.Group, bones: Map<string, THREE.Bone>) => void;
+  onModelReady?: (
+    model: THREE.Group,
+    bones: Map<string, THREE.Bone>,
+    bindQuats?: Map<string, THREE.Quaternion>,
+    bindPositions?: Map<string, THREE.Vector3>
+  ) => void;
 }
 
 export const PlayerModel: React.FC<PlayerModelProps> = ({
   facingAngle,
-  isCrouching,
+  isCrouching: _isCrouching,
   onModelReady,
 }) => {
   // Load the exact provided GLB character model
@@ -26,38 +31,60 @@ export const PlayerModel: React.FC<PlayerModelProps> = ({
   const modelRef = useRef<THREE.Group>(null);
 
   // Clone scene with skeleton hierarchy preservation
-  const { clonedScene, bonesMap } = useMemo(() => {
+  const { clonedScene, bonesMap, bindQuats, bindPositions } = useMemo(() => {
     const clone = SkeletonUtils.clone(scene) as THREE.Group;
     const bones = new Map<string, THREE.Bone>();
+    const quats = new Map<string, THREE.Quaternion>();
+    const positions = new Map<string, THREE.Vector3>();
 
     clone.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+        const mesh = child as THREE.SkinnedMesh;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.frustumCulled = false;
+
+        if (Array.isArray(mesh.material)) {
+          mesh.material.forEach((mat) => {
+            if (mat.transparent) {
+              mat.depthWrite = true;
+            }
+          });
+        } else if (mesh.material && (mesh.material as THREE.Material).transparent) {
+          (mesh.material as THREE.Material).depthWrite = true;
+        }
       }
       if ((child as THREE.Bone).isBone) {
-        bones.set(child.name, child as THREE.Bone);
+        const bone = child as THREE.Bone;
+        bones.set(bone.name, bone);
+        quats.set(bone.name, bone.quaternion.clone());
+        positions.set(bone.name, bone.position.clone());
       }
     });
 
-    return { clonedScene: clone, bonesMap: bones };
+    return {
+      clonedScene: clone,
+      bonesMap: bones,
+      bindQuats: quats,
+      bindPositions: positions,
+    };
   }, [scene]);
 
   useEffect(() => {
     if (onModelReady && modelRef.current) {
-      onModelReady(modelRef.current, bonesMap);
+      onModelReady(modelRef.current, bonesMap, bindQuats, bindPositions);
     }
-  }, [clonedScene, bonesMap, onModelReady]);
+  }, [clonedScene, bonesMap, bindQuats, bindPositions, onModelReady]);
 
   return (
     <group
       ref={modelRef}
       rotation={[0, facingAngle, 0]}
-      position={[0, isCrouching ? -0.25 : 0, 0]}
+      position={[0, 0, 0]}
     >
       {/* 
-        The raw GLB geometry is 180.88cm tall (FBX 1unit = 1cm).
-        Scale 0.01 maps 180.88cm to 1.808m in Three.js metric units.
+        The raw GLB geometry is 178.47cm tall (FBX 1unit = 1cm).
+        Scale 0.01 maps 178.47cm to 1.785m in Three.js metric units.
       */}
       <primitive object={clonedScene} scale={[0.01, 0.01, 0.01]} />
     </group>

@@ -3,12 +3,35 @@ import { useLocation } from 'react-router-dom';
 import type { HouseType, RenderStyle } from '../components/HouseStudio';
 import type { VehicleType, VehicleCameraPreset } from '../components/VehicleStudio';
 import type { LightingPreset } from '../components/3d/environment/StudioLighting';
+import type {
+  NaturePropType,
+  NatureSmallTreeConfig,
+  NatureLargeTreeConfig,
+  NaturePottedPlantConfig,
+  NatureBushConfig,
+  NatureGrassPatchConfig,
+  NatureFallenLeavesConfig,
+} from '../data/natureStudioPresets';
+import {
+  DEFAULT_NATURE_SMALL_TREE,
+  DEFAULT_NATURE_LARGE_TREE,
+  DEFAULT_NATURE_POTTED_PLANT,
+  DEFAULT_NATURE_BUSH,
+  DEFAULT_NATURE_GRASS_PATCH,
+  DEFAULT_NATURE_FALLEN_LEAVES,
+} from '../data/natureStudioPresets';
+import type { DogConfig } from '../../components/dog/DogTypes';
+import { DEFAULT_DOG_CONFIG } from '../../components/dog/DogTypes';
 import {
   DEFAULT_PLAYER_PARAMS,
   DEFAULT_CAMERA_PARAMS,
   type PlayerControllerParams,
   type ThirdPersonCameraParams,
 } from '../../components/player/PlayerTypes';
+import {
+  DEFAULT_LEVEL_BLUEPRINT_CONFIG,
+  type LevelBlueprintConfig,
+} from '../components/inspector/LevelBlueprintInspectorTabs';
 
 import {
   DEFAULT_SCOOTER_CONFIG,
@@ -32,23 +55,45 @@ export function useStudioState() {
   const location = useLocation();
 
   const pathParts = location.pathname.split('/');
-  const rawCategory = pathParts[2] || 'houses';
-  const isPlayerView = rawCategory === 'player';
-  const isVehicleView = rawCategory === 'bikes' || rawCategory === 'props';
-  const activeCategory = isPlayerView ? 'player' : isVehicleView ? 'bikes' : rawCategory;
+  const rawCategory = pathParts[2] || 'level';
+  const isLevelView = rawCategory.toLowerCase() === 'level' || rawCategory.toLowerCase() === 'blueprint' || rawCategory.toLowerCase() === 'map';
+  const isPlayerView = rawCategory.toLowerCase() === 'player';
+  const isDogView = rawCategory.toLowerCase() === 'dog';
+  const isNatureView = rawCategory.toLowerCase() === 'nature' || rawCategory.toLowerCase() === 'trees';
+  const isVehicleView = rawCategory.toLowerCase() === 'bikes' || rawCategory.toLowerCase() === 'props';
+  const activeCategory = isLevelView
+    ? 'level'
+    : isPlayerView
+    ? 'player'
+    : isDogView
+    ? 'dog'
+    : isNatureView
+    ? 'nature'
+    : isVehicleView
+    ? 'bikes'
+    : rawCategory.toLowerCase();
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(true);
+
+  // Active Level 1 Blueprint State
+  const [levelConfig, setLevelConfig] = useState<LevelBlueprintConfig>(DEFAULT_LEVEL_BLUEPRINT_CONFIG);
 
   // Active 3D Player Playground State
   const [playerParams, setPlayerParams] = useState<Partial<PlayerControllerParams>>(DEFAULT_PLAYER_PARAMS);
   const [cameraParams, setCameraParams] = useState<Partial<ThirdPersonCameraParams>>(DEFAULT_CAMERA_PARAMS);
   const [showColliderDebug, setShowColliderDebug] = useState<boolean>(false);
 
+  // Active 3D Dog Gameplay State
+  const [dogConfig, setDogConfig] = useState<DogConfig>(DEFAULT_DOG_CONFIG);
+  const [showDogDebug, setShowDogDebug] = useState<boolean>(true);
+
   // Active 3D House State
   const [houseType, setHouseType] = useState<HouseType>('shop-2story');
   // Active 3D Vehicle & Street Prop State
   const [vehicleType, setVehicleType] = useState<VehicleType>('scooter');
+  // Active 3D Nature & Botanical Prop State
+  const [natureType, setNatureType] = useState<NaturePropType>('botanical-oasis');
 
   const [lightingPreset, setLightingPreset] = useState<LightingPreset>('afternoon');
   const [renderStyle] = useState<RenderStyle>('textured');
@@ -56,6 +101,14 @@ export function useStudioState() {
   const [autoRotate, setAutoRotate] = useState<boolean>(false);
   const [ballThrows, setBallThrows] = useState<number>(0);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+
+  // Nature Configs
+  const [smallTreeConfig, setSmallTreeConfig] = useState<NatureSmallTreeConfig>(DEFAULT_NATURE_SMALL_TREE);
+  const [largeTreeConfig, setLargeTreeConfig] = useState<NatureLargeTreeConfig>(DEFAULT_NATURE_LARGE_TREE);
+  const [pottedPlantConfig, setPottedPlantConfig] = useState<NaturePottedPlantConfig>(DEFAULT_NATURE_POTTED_PLANT);
+  const [bushConfig, setBushConfig] = useState<NatureBushConfig>(DEFAULT_NATURE_BUSH);
+  const [grassPatchConfig, setGrassPatchConfig] = useState<NatureGrassPatchConfig>(DEFAULT_NATURE_GRASS_PATCH);
+  const [fallenLeavesConfig, setFallenLeavesConfig] = useState<NatureFallenLeavesConfig>(DEFAULT_NATURE_FALLEN_LEAVES);
 
   // Vehicle Configs
   const [scooterConfig, setScooterConfig] = useState(DEFAULT_SCOOTER_CONFIG);
@@ -98,6 +151,7 @@ export function useStudioState() {
         setModernConfig((prev) => ({ ...prev, mainColor: wall, accentColor: accent, frameColor: trim }));
         break;
       case 'terrace':
+      default:
         setHouseConfig((prev) => ({ ...prev, wallColor: wall }));
         break;
     }
@@ -122,6 +176,13 @@ export function useStudioState() {
         break;
     }
   }, [vehicleType]);
+
+  const applyBotanicalPalette = useCallback((foliage: string, highlight: string, accent: string) => {
+    setSmallTreeConfig((prev) => ({ ...prev, foliageColor: foliage, highlightColor: highlight }));
+    setLargeTreeConfig((prev) => ({ ...prev, foliageColor: foliage, blossomColor: accent }));
+    setBushConfig((prev) => ({ ...prev, foliageColor: foliage, flowerColor: accent }));
+    setFallenLeavesConfig((prev) => ({ ...prev, leafColor: accent }));
+  }, []);
 
   // Get current active colors
   const currentColors = useMemo(() => {
@@ -157,8 +218,37 @@ export function useStudioState() {
   }, []);
 
   const getModelTitle = useCallback((): string => {
+    if (isLevelView) {
+      return 'Level 1 XZ-Plane Blueprint & Greybox Traversal Blockout';
+    }
+
     if (isPlayerView) {
       return 'Main Character Movement & Physics QA Playground';
+    }
+
+    if (isDogView) {
+      return 'Guard Dog AI, Stealth Perception & Distraction Sandbox';
+    }
+
+    if (isNatureView) {
+      switch (natureType) {
+        case 'botanical-oasis':
+          return 'Courtyard Botanical Oasis (All 6 Nature Props)';
+        case 'large-tree':
+          return 'Grand Gulmohar Blossom & Banyan Tree';
+        case 'small-tree':
+          return 'Slender Small Tree (Neem / Ashoka)';
+        case 'potted-plant':
+          return 'Traditional Indian Potted Plants (Tulsi & Ceramics)';
+        case 'bush':
+          return 'Vibrant Flowering Bougainvillea & Hedge';
+        case 'grass-patch':
+          return 'Lush Organic Grass Patch & Dandelions';
+        case 'fallen-leaves':
+          return 'Fallen Autumn Leaf Ground Scatter';
+        default:
+          return 'Indian Nature Prop';
+      }
     }
 
     if (isVehicleView) {
@@ -201,11 +291,40 @@ export function useStudioState() {
       default:
         return 'Rooftop Terrace House';
     }
-  }, [isPlayerView, isVehicleView, vehicleType, houseType]);
+  }, [isLevelView, isPlayerView, isDogView, isNatureView, isVehicleView, natureType, vehicleType, houseType]);
 
   const getDimensionsText = useCallback((): string => {
+    if (isLevelView) {
+      return 'Map Footprint: 35m × 35m (1,225 m²) • Elevation: +0.0m to +4.85m • 10 Traversal Nodes • Target Playtime: 10-15 Min';
+    }
+
     if (isPlayerView) {
       return 'Test Area: 20m × 20m • Standing Height: 1.80m • Capsule Radius: 0.32m • Zero Props';
+    }
+
+    if (isDogView) {
+      return `Vision: ${dogConfig.visionRange.toFixed(1)}m (${dogConfig.visionAngle}°) • Hearing: ${dogConfig.hearingSensitivity.toFixed(1)}x • Safe Window: ${dogConfig.distractedDuration.toFixed(1)}s • Key [B] Biscuit`;
+    }
+
+    if (isNatureView) {
+      switch (natureType) {
+        case 'botanical-oasis':
+          return 'Display Dais: 8.0m Dia • Courtyard Garden • 6 Integrated Prop Types • Stone Bench';
+        case 'large-tree':
+          return 'Height: 3.4m • Canopy Spread: 3.8m • Buttress Roots • Orange Blossom Clusters';
+        case 'small-tree':
+          return 'Height: 2.2m • Canopy Spread: 1.7m • Root Flare • Tapered Bark • Scatter';
+        case 'potted-plant':
+          return 'Height: 0.65m - 0.95m • Pot Dia: 0.36m • Handcrafted Clay & Glazed Ceramic';
+        case 'bush':
+          return 'Height: 1.0m - 1.4m • Spread: 1.2m • Volumetric Foliage • Vivid Flowers';
+        case 'grass-patch':
+          return 'Radius: 0.65m • Density: 18 Blades • Curved Organic Geometry • Dandelions';
+        case 'fallen-leaves':
+          return 'Spread Radius: 0.85m • 16 Scattered Leaves • Multi-Tone Autumn Palette';
+        default:
+          return 'Botanical Metric 1:1 Scale Prop';
+      }
     }
 
     if (isVehicleView) {
@@ -248,27 +367,38 @@ export function useStudioState() {
       default:
         return 'Terrace: 9.0m × 7.0m • Height: 2.75m • Traditional Rooftop';
     }
-  }, [isPlayerView, isVehicleView, vehicleType, houseType]);
+  }, [isLevelView, isPlayerView, isDogView, isNatureView, isVehicleView, dogConfig, natureType, vehicleType, houseType]);
 
   return {
     rawCategory,
+    isLevelView,
     isPlayerView,
+    isDogView,
+    isNatureView,
     isVehicleView,
     activeCategory,
     searchQuery,
     setSearchQuery,
     inspectorOpen,
     setInspectorOpen,
+    levelConfig,
+    setLevelConfig,
     playerParams,
     setPlayerParams,
     cameraParams,
     setCameraParams,
     showColliderDebug,
     setShowColliderDebug,
+    dogConfig,
+    setDogConfig,
+    showDogDebug,
+    setShowDogDebug,
     houseType,
     setHouseType,
     vehicleType,
     setVehicleType,
+    natureType,
+    setNatureType,
     lightingPreset,
     setLightingPreset,
     renderStyle,
@@ -279,6 +409,19 @@ export function useStudioState() {
     ballThrows,
     soundEnabled,
     setSoundEnabled,
+    smallTreeConfig,
+    setSmallTreeConfig,
+    largeTreeConfig,
+    setLargeTreeConfig,
+    pottedPlantConfig,
+    setPottedPlantConfig,
+    bushConfig,
+    setBushConfig,
+    grassPatchConfig,
+    setGrassPatchConfig,
+    fallenLeavesConfig,
+    setFallenLeavesConfig,
+    applyBotanicalPalette,
     scooterConfig,
     setScooterConfig,
     motorcycleConfig,

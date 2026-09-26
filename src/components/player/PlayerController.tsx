@@ -64,6 +64,7 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
   const [visualIsGrounded, setVisualIsGrounded] = useState<boolean>(true);
   const [visualIsCrouching, setVisualIsCrouching] = useState<boolean>(false);
   const [mouseDelta, setMouseDelta] = useState<{ deltaX: number; deltaY: number }>({ deltaX: 0, deltaY: 0 });
+  const [characterModel, setCharacterModel] = useState<THREE.Group | null>(null);
 
   // Temporary Vectors for allocation-free useFrame loop
   const tempMoveDir = useMemo(() => new THREE.Vector3(), []);
@@ -83,8 +84,19 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
     inputManager.setEnabled(enabled);
   }, [enabled, inputManager]);
 
-  const handleModelReady = useCallback((_model: THREE.Group, bones: Map<string, THREE.Bone>) => {
+  const bindQuatsRef = useRef<Map<string, THREE.Quaternion>>(new Map());
+  const bindPositionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
+
+  const handleModelReady = useCallback((
+    model: THREE.Group,
+    bones: Map<string, THREE.Bone>,
+    bindQuats?: Map<string, THREE.Quaternion>,
+    bindPositions?: Map<string, THREE.Vector3>
+  ) => {
     bonesMapRef.current = bones;
+    if (bindQuats) bindQuatsRef.current = bindQuats;
+    if (bindPositions) bindPositionsRef.current = bindPositions;
+    setCharacterModel(model);
   }, []);
 
   // Physics & Movement Loop (60 FPS)
@@ -180,47 +192,100 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
         vel.current.y = params.jumpForce;
         isGroundedRef.current = false;
       } else {
-        vel.current.y = -2.0; // Ground snap clamp
+        vel.current.y = 0;
       }
     } else {
       vel.current.y -= params.gravity * dt;
       if (vel.current.y < -30) vel.current.y = -30;
     }
 
-    // 9. Integrate Proposed Position
-    const proposedPos = pos.current.clone().addScaledVector(vel.current, dt);
+    // 9. Proposed Position before collision
+    const proposedPos = pos.current.clone();
+    proposedPos.x += vel.current.x * dt;
+    proposedPos.z += vel.current.z * dt;
+    proposedPos.y += vel.current.y * dt;
 
-    // 10. Resolve Collisions against Colliders with Step-Up Support
     const currentRadius = params.radius;
     const currentHeight = colliderHeightRef.current;
 
+    // 10. Resolve Step-Up & Horizontal Collisions against Static Colliders
     for (const col of colliders) {
       if (col.type === 'box' && col.min && col.max) {
-        if (proposedPos.y < col.max.y && proposedPos.y + currentHeight > col.min.y) {
-          // Check step climbing
-          const stepDiff = col.max.y - proposedPos.y;
-          if (stepDiff > 0 && stepDiff <= params.stepHeight && vel.current.y <= 0) {
+        const playerBottom = proposedPos.y;
+        const playerTop = proposedPos.y + currentHeight;
+
+        // Skip if entirely above or below this collider
+        if (playerBottom >= col.max.y || playerTop <= col.min.y) {
+          continue;
+        }
+
+        // Horizontal closest point on AABB
+        const closestX = THREE.MathUtils.clamp(proposedPos.x, col.min.x, col.max.x);
+        const closestZ = THREE.MathUtils.clamp(proposedPos.z, col.min.z, col.max.z);
+
+        const dx = proposedPos.x - closestX;
+        const dz = proposedPos.z - closestZ;
+        const distSq = dx * dx + dz * dz;
+
+        const isInside =
+          proposedPos.x >= col.min.x &&
+          proposedPos.x <= col.max.x &&
+          proposedPos.z >= col.min.z &&
+          proposedPos.z <= col.max.z;
+
+        if (distSq < currentRadius * currentRadius || isInside) {
+          // Check if this is a walkable step-up
+          const stepDiff = col.max.y - playerBottom;
+          if (
+            isGroundedRef.current &&
+            vel.current.y <= 0.05 &&
+            stepDiff > 0.01 &&
+            stepDiff <= params.stepHeight &&
+            hasMovementInput
+          ) {
             proposedPos.y = col.max.y;
             continue;
           }
 
-          // Horizontal pushback
-          const closestX = THREE.MathUtils.clamp(proposedPos.x, col.min.x, col.max.x);
-          const closestZ = THREE.MathUtils.clamp(proposedPos.z, col.min.z, col.max.z);
+          // Otherwise resolve as solid obstacle pushback
+          let nx = 0;
+          let nz = 0;
+          let pushDist = 0;
 
-          const dx = proposedPos.x - closestX;
-          const dz = proposedPos.z - closestZ;
-          const distSq = dx * dx + dz * dz;
+          if (isInside) {
+            const dLeft = proposedPos.x - col.min.x;
+            const dRight = col.max.x - proposedPos.x;
+            const dBack = proposedPos.z - col.min.z;
+            const dFront = col.max.z - proposedPos.z;
 
-          if (distSq < currentRadius * currentRadius && distSq > 0.00001) {
+            const minD = Math.min(dLeft, dRight, dBack, dFront);
+            if (minD === dLeft) {
+              nx = -1;
+              pushDist = dLeft + currentRadius;
+            } else if (minD === dRight) {
+              nx = 1;
+              pushDist = dRight + currentRadius;
+            } else if (minD === dBack) {
+              nz = -1;
+              pushDist = dBack + currentRadius;
+            } else {
+              nz = 1;
+              pushDist = dFront + currentRadius;
+            }
+          } else {
             const dist = Math.sqrt(distSq);
-            const overlap = currentRadius - dist;
-            const nx = dx / dist;
-            const nz = dz / dist;
+            if (dist > 0.0001) {
+              nx = dx / dist;
+              nz = dz / dist;
+              pushDist = currentRadius - dist;
+            }
+          }
 
-            proposedPos.x += nx * overlap;
-            proposedPos.z += nz * overlap;
+          if (pushDist > 0) {
+            proposedPos.x += nx * pushDist;
+            proposedPos.z += nz * pushDist;
 
+            // Slide along obstacle (project velocity along normal)
             const dot = vel.current.x * nx + vel.current.z * nz;
             if (dot < 0) {
               vel.current.x -= dot * nx;
@@ -231,33 +296,49 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
       }
     }
 
-    // 11. Ground Detection
-    let groundLevel = 0; // Default flat terrain plane at Y = 0
-    const rayStartY = proposedPos.y + 0.5;
+    // 11. Ground Detection & Snapping
+    let groundLevel = 0; // Default flat ground level at Y = 0
+    const footProbeRadius = 0.15; // Tight footprint radius
 
     for (const col of colliders) {
       if (col.type === 'box' && col.min && col.max) {
         if (
-          proposedPos.x >= col.min.x - currentRadius &&
-          proposedPos.x <= col.max.x + currentRadius &&
-          proposedPos.z >= col.min.z - currentRadius &&
-          proposedPos.z <= col.max.z + currentRadius
+          proposedPos.x >= col.min.x - footProbeRadius &&
+          proposedPos.x <= col.max.x + footProbeRadius &&
+          proposedPos.z >= col.min.z - footProbeRadius &&
+          proposedPos.z <= col.max.z + footProbeRadius
         ) {
-          if (rayStartY >= col.max.y && col.max.y >= groundLevel) {
-            groundLevel = col.max.y;
+          // Only register surfaces at or below the player's reachable step height
+          if (col.max.y <= pos.current.y + params.stepHeight + 0.1) {
+            if (col.max.y > groundLevel) {
+              groundLevel = col.max.y;
+            }
           }
         }
       }
     }
 
-    if (proposedPos.y <= groundLevel + 0.06) {
-      proposedPos.y = groundLevel;
-      if (vel.current.y < 0) {
-        vel.current.y = 0;
-      }
-      isGroundedRef.current = true;
-    } else {
+    // Ground landing & step-down snap resolution
+    if (vel.current.y > 0.05) {
+      // Actively jumping upward: do not snap to ground
       isGroundedRef.current = false;
+    } else {
+      const distToGround = proposedPos.y - groundLevel;
+
+      if (distToGround <= 0.08 && distToGround >= -0.3) {
+        // Landed on or near ground
+        proposedPos.y = groundLevel;
+        vel.current.y = 0;
+        isGroundedRef.current = true;
+      } else if (isGroundedRef.current && distToGround > 0.08 && distToGround <= params.stepHeight + 0.08) {
+        // Step-down snapping (e.g. walking down stairs smoothly)
+        proposedPos.y = groundLevel;
+        vel.current.y = 0;
+        isGroundedRef.current = true;
+      } else {
+        // In the air (e.g., falling off roof or high drop)
+        isGroundedRef.current = false;
+      }
     }
 
     pos.current.copy(proposedPos);
@@ -274,7 +355,7 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
     if (!isGroundedRef.current) {
       nextState = vel.current.y > 0.5 ? 'JUMP' : 'FALL';
     } else if (isCrouchingRef.current) {
-      nextState = horizontalSpeed > 0.25 ? 'CROUCH_WALK' : 'CROUCH';
+      nextState = (hasMovementInput || horizontalSpeed > 0.08) ? 'CROUCH_WALK' : 'CROUCH';
     } else if (horizontalSpeed > 5.5) {
       nextState = 'SPRINT';
     } else if (horizontalSpeed > 2.5) {
@@ -349,6 +430,9 @@ export const PlayerController: React.FC<PlayerControllerProps> = ({
           isGrounded={visualIsGrounded}
           isCrouching={visualIsCrouching}
           bonesMap={bonesMapRef.current}
+          bindQuats={bindQuatsRef.current}
+          bindPositions={bindPositionsRef.current}
+          characterModel={characterModel}
         />
       </group>
 

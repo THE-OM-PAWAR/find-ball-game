@@ -13,7 +13,10 @@ import {
 import type { VehicleCameraPreset } from './VehicleStudio';
 
 interface StudioHeaderProps {
+  isLevelView?: boolean;
   isPlayerView: boolean;
+  isDogView?: boolean;
+  isNatureView?: boolean;
   isVehicleView: boolean;
   activeCategory: string;
   modelTitle: string;
@@ -30,7 +33,10 @@ interface StudioHeaderProps {
 }
 
 export const StudioHeader: React.FC<StudioHeaderProps> = ({
+  isLevelView,
   isPlayerView,
+  isDogView,
+  isNatureView,
   isVehicleView,
   activeCategory,
   modelTitle,
@@ -51,13 +57,19 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
     <header className="top-header">
       {/* Breadcrumbs */}
       <div className="breadcrumbs">
-        <span className="crumb-root" onClick={() => navigate('/studio')} style={{ cursor: 'pointer' }}>
+        <span className="crumb-root" onClick={() => navigate('/studio/level')} style={{ cursor: 'pointer' }}>
           Studio
         </span>
         <ChevronRight size={14} className="crumb-separator" />
         <span className="crumb-segment">
-          {isPlayerView
+          {isLevelView || activeCategory === 'level'
+            ? 'Level 1 Blueprint'
+            : isPlayerView
             ? 'Player Playground'
+            : isDogView || activeCategory === 'dog'
+            ? 'Dog AI & Stealth'
+            : isNatureView || activeCategory === 'nature'
+            ? 'Nature & Foliage'
             : isVehicleView
             ? 'Vehicles & Street Props'
             : activeCategory === 'lighting'

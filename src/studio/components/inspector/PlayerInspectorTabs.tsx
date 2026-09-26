@@ -328,12 +328,39 @@ export const PlayerInspectorTab2: React.FC<PlayerInspectorTabsProps> = ({
         </div>
       </div>
 
+      <div className="inspector-section">
+        <span className="section-label">ACTIVE QA HOUSES (3 BUILDINGS)</span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11.5 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: '#ffffff', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: 12 }}>🏡 Open-Stair Bungalow</div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-subtle)' }}>North-West • Exterior staircase & veranda</div>
+            </div>
+            <span className="status-badge-active" style={{ fontSize: 9.5 }}>Solid Box</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: '#ffffff', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: 12 }}>🏪 2-Storey Shop Complex</div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-subtle)' }}>East Promenade • 6.48m tall façade</div>
+            </div>
+            <span className="status-badge-active" style={{ fontSize: 9.5 }}>Solid Box</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 10px', background: '#ffffff', border: '1px solid var(--border-subtle)', borderRadius: 'var(--radius-md)' }}>
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: 12 }}>✨ Contemporary Villa</div>
+              <div style={{ fontSize: 10.5, color: 'var(--text-subtle)' }}>South-West • Narrow 1.6m alleyway</div>
+            </div>
+            <span className="status-badge-active" style={{ fontSize: 9.5 }}>Solid Box</span>
+          </div>
+        </div>
+      </div>
+
       <div className="info-box-playground">
         <div className="info-box-title">
           <Shield size={13} style={{ color: '#10b981' }} />
-          Collision Verification
+          Collision & Occlusion Verification
         </div>
-        Verifies ground detection, standing clearance against obstacles, crouch height adjustment, and perimeter 20m × 20m boundaries.
+        Verifies ground detection, standing clearance, building corner collisions, narrow alleyway navigation, and third-person camera occlusion avoidance against realistic architectural geometry.
       </div>
     </>
   );
