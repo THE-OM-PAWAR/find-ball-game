@@ -6,7 +6,7 @@ import { VehicleInspectorTab1, VehicleInspectorTab2 } from './VehicleInspectorTa
 import { NatureInspectorTab1, NatureInspectorTab2 } from './NatureInspectorTabs';
 import { DogInspectorTab1, DogInspectorTab2 } from './DogInspectorTabs';
 import { PlayerInspectorTab1, PlayerInspectorTab2 } from './PlayerInspectorTabs';
-import { LevelBlueprintInspectorTab1, LevelBlueprintInspectorTab2 } from './LevelBlueprintInspectorTabs';
+import { MapInspectorTab1, MapInspectorTab2 } from './MapInspectorTabs';
 import { LightingInspectorTab } from './LightingInspectorTab';
 import type { StudioState } from '../../hooks/useStudioState';
 
@@ -16,9 +16,6 @@ interface StudioInspectorProps {
 
 export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
   const {
-    isLevelView,
-    levelConfig,
-    setLevelConfig,
     isPlayerView,
     isDogView,
     isNatureView,
@@ -111,8 +108,8 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
       <Tabs defaultValue="geometry" className="radix-tabs-root">
         <TabsList className="radix-tabs-list">
           <TabsTrigger value="geometry" className="radix-tabs-trigger">
-            {isLevelView
-              ? 'Level Traversal'
+            {state.isMapView
+              ? 'Level Landmarks'
               : isPlayerView
               ? 'Movement & Physics'
               : isDogView
@@ -124,8 +121,8 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
               : 'Architecture'}
           </TabsTrigger>
           <TabsTrigger value="props" className="radix-tabs-trigger">
-            {isLevelView
-              ? 'Overlays & Specs'
+            {state.isMapView
+              ? '14 Houses Inventory'
               : isPlayerView
               ? 'Camera & Debug'
               : isDogView
@@ -141,10 +138,10 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
 
         {/* Tab 1: Primary Selection & Behavior */}
         <TabsContent value="geometry" className="radix-tabs-content">
-          {isLevelView ? (
-            <LevelBlueprintInspectorTab1
-              config={levelConfig}
-              onConfigChange={setLevelConfig}
+          {state.isMapView ? (
+            <MapInspectorTab1
+              config={state.mapConfig}
+              onConfigChange={state.setMapConfig}
             />
           ) : isPlayerView ? (
             <PlayerInspectorTab1
@@ -228,10 +225,10 @@ export const StudioInspector: React.FC<StudioInspectorProps> = ({ state }) => {
 
         {/* Tab 2: Sensors & Tuning */}
         <TabsContent value="props" className="radix-tabs-content">
-          {isLevelView ? (
-            <LevelBlueprintInspectorTab2
-              config={levelConfig}
-              onConfigChange={setLevelConfig}
+          {state.isMapView ? (
+            <MapInspectorTab2
+              config={state.mapConfig}
+              onConfigChange={state.setMapConfig}
             />
           ) : isPlayerView ? (
             <PlayerInspectorTab2

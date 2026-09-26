@@ -18,7 +18,7 @@ import type {
 } from '../types/studioTypes';
 
 export const STUDIO_CATEGORIES: StudioCategory[] = [
-  { id: 'level', name: 'Level 1 Blueprint', route: '/studio/level', icon: Map, count: '35m x 35m' },
+  { id: 'map', name: 'Level 1 Map', route: '/studio/map', icon: Map, count: '50m x 50m' },
   { id: 'houses', name: 'Houses & Complexes', route: '/studio/houses', icon: Home, count: '7 models' },
   { id: 'nature', name: 'Nature & Foliage', route: '/studio/nature', icon: Trees, count: '6 props' },
   { id: 'dog', name: 'Dog AI & Stealth', route: '/studio/dog', icon: Dog, count: 'AI Gameplay' },

@@ -89,7 +89,7 @@ export const SingleStoryStairHouse: React.FC<{
   );
 
   // Stair Parameters: 16 climbable steps from y = 0.24m (ground plinth) to y = 3.24m (rooftop floor)
-  // Shifted forward (startZ = 2.15, endZ = -1.05) so top step lands directly on main terrace
+  // Shifted forward (startZ = 2.15, endZ = -1.05) so top step lands directly on main terrace on the left side
   const stairCenterZ = 0.55;
   const stairSlopeAngle = 0.7531; // arctan(3.0 / 3.2) = 43.15 deg
 
@@ -101,7 +101,7 @@ export const SingleStoryStairHouse: React.FC<{
     const endZ = -1.05;
     const totalDepth = startZ - endZ; // 3.2m
     const treadDepth = totalDepth / count; // 0.20m per tread
-    const stairX = 2.65; // Center of stairs (between charcoal wall at x=2.15 and outer stringer at x=3.20)
+    const stairX = -2.65; // Center of stairs on left side (between outer stringer at x=-3.20 and charcoal wall at x=-2.15)
     const stairWidth = 1.0;
 
     return Array.from({ length: count }).map((_, i) => ({
@@ -117,14 +117,8 @@ export const SingleStoryStairHouse: React.FC<{
 
   return (
     <group position={position} rotation={rotation}>
-      {/* 1. BASE PLINTH (Clean concrete ground platform) */}
-      <mesh position={[0, 0.12, 0]} receiveShadow castShadow>
-        <boxGeometry args={[9.6, 0.24, 8.4]} />
-        <meshStandardMaterial color="#f1f5f9" roughness={0.9} />
-      </mesh>
-
       {/* Front Entrance 4-Step Stairs (leading to raised veranda) */}
-      <group position={[-1.2, 0.24, 2.15]}>
+      <group position={[1.2, 0.24, 2.15]}>
         {[
           { y: 0.035, z: 0.45, h: 0.07 },
           { y: 0.09, z: 0.3, h: 0.07 },
@@ -138,7 +132,7 @@ export const SingleStoryStairHouse: React.FC<{
       </group>
 
       {/* 2. RAISED FRONT VERANDA / OTLA (Platform at Y = 0.48) */}
-      <group position={[-0.2, 0.24, 1.2]}>
+      <group position={[0.2, 0.24, 1.2]}>
         {/* Raised Floor Slab */}
         <mesh position={[0, 0.12, 0]} receiveShadow castShadow>
           <boxGeometry args={[4.4, 0.24, 1.6]} />
@@ -151,7 +145,7 @@ export const SingleStoryStairHouse: React.FC<{
         </mesh>
 
         {/* White Vertical Safety Railing on Front Veranda */}
-        <group position={[0.35, 0.28, 0.74]}>
+        <group position={[-0.35, 0.28, 0.74]}>
           {/* Top Handrail */}
           <mesh position={[0, 0.7, 0]} castShadow material={whiteTrimMat}>
             <boxGeometry args={[2.7, 0.04, 0.04]} />
@@ -171,54 +165,35 @@ export const SingleStoryStairHouse: React.FC<{
 
       {/* 3. MAIN HOUSE BODY */}
       <group position={[0, 0.24, -0.4]}>
-        {/* Left Section (Beige with horizontal groove cladding) */}
-        <group position={[-2.8, 0, 0]}>
-          {/* Left Wing Body */}
-          <mesh position={[0, 1.6, 0]} castShadow receiveShadow material={mainWallMat}>
-            <boxGeometry args={[1.8, 3.2, 3.6]} />
-          </mesh>
-          {/* Left Dark Vertical Accent Pillar */}
-          <mesh position={[-0.9, 1.65, 0.1]} castShadow receiveShadow material={accentWallMat}>
-            <boxGeometry args={[0.25, 3.3, 3.8]} />
-          </mesh>
-          {/* Horizontal Groove Cladding Strips on Lower Front */}
-          {[-0.8, -0.5, -0.2, 0.1, 0.4].map((y, i) => (
-            <mesh key={i} position={[0, 1.2 + y, 1.82]} material={whiteTrimMat}>
-              <boxGeometry args={[1.4, 0.03, 0.02]} />
-            </mesh>
-          ))}
-          {/* Left Window with White Sunshade */}
-          <mesh position={[0, 2.3, 1.82]} castShadow material={darkTrimMat}>
-            <boxGeometry args={[0.9, 0.85, 0.06]} />
-          </mesh>
-          <mesh position={[0, 2.8, 1.92]} castShadow material={whiteTrimMat}>
-            <boxGeometry args={[1.1, 0.06, 0.25]} />
-          </mesh>
-        </group>
+        {/* Left Charcoal Backing Wall (Flanking the interior side of the left stairs) */}
+        {/* Height = 3.24m (stops flush at rooftop floor level so no roof covers the stairs) */}
+        <mesh position={[-1.65, 1.6, 0]} castShadow receiveShadow material={accentWallMat}>
+          <boxGeometry args={[1.1, 3.2, 3.6]} />
+        </mesh>
 
         {/* Central Facade (Beige Front Wall with Door, Stone Pillar, Big Window) */}
-        <group position={[-0.4, 0, 0]}>
+        <group position={[0.4, 0, 0]}>
           {/* Main Enclosing Wall */}
           <mesh position={[0, 1.6, 0]} castShadow receiveShadow material={mainWallMat}>
             <boxGeometry args={[3.0, 3.2, 3.6]} />
           </mesh>
 
           {/* Front Entrance Wooden Door */}
-          <mesh position={[-0.85, 1.35, 1.81]} castShadow material={woodDoorMat}>
+          <mesh position={[0.85, 1.35, 1.81]} castShadow material={woodDoorMat}>
             <boxGeometry args={[1.0, 2.2, 0.05]} />
           </mesh>
           {/* Door Vertical Metallic Handle */}
-          <mesh position={[-0.45, 1.35, 1.86]} castShadow material={whiteTrimMat}>
+          <mesh position={[0.45, 1.35, 1.86]} castShadow material={whiteTrimMat}>
             <cylinderGeometry args={[0.012, 0.012, 0.8, 8]} />
           </mesh>
 
           {/* Stone Accent Pillar (Separating Door and Window) */}
-          <mesh position={[-0.1, 1.6, 1.83]} castShadow receiveShadow material={stoneMat}>
+          <mesh position={[0.1, 1.6, 1.83]} castShadow receiveShadow material={stoneMat}>
             <boxGeometry args={[0.55, 3.2, 0.12]} />
           </mesh>
 
           {/* Front Large Sliding Window */}
-          <group position={[0.85, 1.6, 1.82]}>
+          <group position={[-0.85, 1.6, 1.82]}>
             <mesh castShadow material={darkTrimMat}>
               <boxGeometry args={[1.25, 1.4, 0.06]} />
             </mesh>
@@ -233,15 +208,34 @@ export const SingleStoryStairHouse: React.FC<{
           </group>
         </group>
 
-        {/* Right Charcoal Backing Wall (Flanking the interior side of the stairs) */}
-        {/* Height = 3.24m (stops flush at rooftop floor level so no roof covers the stairs) */}
-        <mesh position={[1.65, 1.6, 0]} castShadow receiveShadow material={accentWallMat}>
-          <boxGeometry args={[1.1, 3.2, 3.6]} />
-        </mesh>
+        {/* Right Section (Beige with horizontal groove cladding) */}
+        <group position={[2.8, 0, 0]}>
+          {/* Right Wing Body */}
+          <mesh position={[0, 1.6, 0]} castShadow receiveShadow material={mainWallMat}>
+            <boxGeometry args={[1.8, 3.2, 3.6]} />
+          </mesh>
+          {/* Right Dark Vertical Accent Pillar */}
+          <mesh position={[0.9, 1.65, 0.1]} castShadow receiveShadow material={accentWallMat}>
+            <boxGeometry args={[0.25, 3.3, 3.8]} />
+          </mesh>
+          {/* Horizontal Groove Cladding Strips on Lower Front */}
+          {[-0.8, -0.5, -0.2, 0.1, 0.4].map((y, i) => (
+            <mesh key={i} position={[0, 1.2 + y, 1.82]} material={whiteTrimMat}>
+              <boxGeometry args={[1.4, 0.03, 0.02]} />
+            </mesh>
+          ))}
+          {/* Right Window with White Sunshade */}
+          <mesh position={[0, 2.3, 1.82]} castShadow material={darkTrimMat}>
+            <boxGeometry args={[0.9, 0.85, 0.06]} />
+          </mesh>
+          <mesh position={[0, 2.8, 1.92]} castShadow material={whiteTrimMat}>
+            <boxGeometry args={[1.1, 0.06, 0.25]} />
+          </mesh>
+        </group>
 
         {/* 4. PROJECTING CANTILEVER ROOF CANOPY & COVE LIGHTING */}
-        {/* Only spans the front facade (x = -2.7 to 1.7), leaving stairs at x >= 2.15 completely open */}
-        <group position={[-0.5, 3.2, 1.2]}>
+        {/* Only spans the front facade (x = -1.7 to 2.7), leaving stairs at x <= -2.15 completely open */}
+        <group position={[0.5, 3.2, 1.2]}>
           {/* White Projecting Roof Slab (Chhajja / Portico) */}
           <mesh position={[0, 0.12, 0]} castShadow receiveShadow material={whiteTrimMat}>
             <boxGeometry args={[4.4, 0.25, 2.0]} />
@@ -271,7 +265,7 @@ export const SingleStoryStairHouse: React.FC<{
           )}
         </group>
 
-        {/* 5. PLAYABLE OPEN EXTERIOR STAIRCASE (Shifted Forward for Direct Terrace Walk-In) */}
+        {/* 5. PLAYABLE OPEN EXTERIOR STAIRCASE (Shifted to Left Side for Direct Terrace Walk-In) */}
         <group position={[0, 0, 0]}>
           {/* Individual Stair Treads (16 steps climbing up cleanly) */}
           {stairSteps.map((step) => (
@@ -288,7 +282,7 @@ export const SingleStoryStairHouse: React.FC<{
 
           {/* Solid Under-Stair Concrete Support Base */}
           <mesh
-            position={[2.7, 1.6, stairCenterZ]}
+            position={[-2.7, 1.6, stairCenterZ]}
             rotation={[stairSlopeAngle, 0, 0]}
             receiveShadow
             material={accentWallMat}
@@ -297,9 +291,9 @@ export const SingleStoryStairHouse: React.FC<{
           </mesh>
 
           {/* White Outer Diagonal Parapet Wall / Balustrade */}
-          {/* 1. Main Diagonal Sloping Parapet (rises from front to back parallel to stairs) */}
+          {/* 1. Main Diagonal Sloping Parapet (rises from front to back parallel to stairs on left side) */}
           <mesh
-            position={[3.20, 2.1, stairCenterZ]}
+            position={[-3.20, 2.1, stairCenterZ]}
             rotation={[stairSlopeAngle, 0, 0]}
             castShadow
             receiveShadow
@@ -309,22 +303,22 @@ export const SingleStoryStairHouse: React.FC<{
           </mesh>
 
           {/* 2. Bottom Front Anchor Pillar (meets the front ground & veranda) */}
-          <mesh position={[3.20, 0.74, 2.15]} castShadow receiveShadow material={whiteTrimMat}>
+          <mesh position={[-3.20, 0.74, 2.15]} castShadow receiveShadow material={whiteTrimMat}>
             <boxGeometry args={[0.14, 1.0, 0.30]} />
           </mesh>
 
           {/* 3. Top Rooftop Landing Pillar (meets rooftop terrace edge) */}
-          <mesh position={[3.20, 3.59, -1.3]} castShadow receiveShadow material={whiteTrimMat}>
-            <boxGeometry args={[0.24, 0.70, .9]} />
+          <mesh position={[-3.20, 3.59, -1.3]} castShadow receiveShadow material={whiteTrimMat}>
+            <boxGeometry args={[0.24, 0.70, 0.9]} />
           </mesh>
 
           {/* Top Landing Platform (Direct seamless walk-in to rooftop terrace) */}
-          <mesh position={[2.65, 3.12, -1.35]} receiveShadow material={stepTreadMat}>
+          <mesh position={[-2.65, 3.12, -1.35]} receiveShadow material={stepTreadMat}>
             <boxGeometry args={[1.0, 0.24, 0.65]} />
           </mesh>
 
           {/* Staircase Bottom Landing Pad */}
-          <mesh position={[2.65, 0.12, 2.25]} receiveShadow material={stepTreadMat}>
+          <mesh position={[-2.65, 0.12, 2.25]} receiveShadow material={stepTreadMat}>
             <boxGeometry args={[1.0, 0.24, 0.35]} />
           </mesh>
         </group>
@@ -332,13 +326,13 @@ export const SingleStoryStairHouse: React.FC<{
         {/* 6. ACCESSIBLE ROOFTOP TERRACE & PERIMETER RAILING */}
         <group position={[0, 3.24, 0]}>
           {/* Flat Walkable Rooftop Floor Slab */}
-          <mesh position={[-0.8, 0.02, 0]} receiveShadow>
+          <mesh position={[0.8, 0.02, 0]} receiveShadow>
             <boxGeometry args={[5.8, 0.04, 3.8]} />
             <meshStandardMaterial color="#d1c7b7" roughness={0.85} />
           </mesh>
 
           {/* Modern Rooftop Vertical Slat Safety Railing (Front) */}
-          <group position={[-0.8, 0.04, 1.8]}>
+          <group position={[0.8, 0.04, 1.8]}>
             {/* Top Handrail */}
             <mesh position={[0, 0.55, 0]} castShadow material={whiteTrimMat}>
               <boxGeometry args={[5.6, 0.035, 0.035]} />
@@ -351,8 +345,8 @@ export const SingleStoryStairHouse: React.FC<{
             ))}
           </group>
 
-          {/* Rooftop Left Perimeter Railing */}
-          <group position={[-3.65, 0.04, 0]} rotation={[0, Math.PI / 2, 0]}>
+          {/* Rooftop Right Perimeter Railing */}
+          <group position={[3.65, 0.04, 0]} rotation={[0, Math.PI / 2, 0]}>
             <mesh position={[0, 0.55, 0]} castShadow material={whiteTrimMat}>
               <boxGeometry args={[3.6, 0.035, 0.035]} />
             </mesh>
@@ -364,7 +358,7 @@ export const SingleStoryStairHouse: React.FC<{
           </group>
 
           {/* Rooftop Back Safety Railing */}
-          <group position={[-0.8, 0.04, -1.85]}>
+          <group position={[0.8, 0.04, -1.85]}>
             <mesh position={[0, 0.55, 0]} castShadow material={whiteTrimMat}>
               <boxGeometry args={[5.6, 0.035, 0.035]} />
             </mesh>
@@ -377,17 +371,17 @@ export const SingleStoryStairHouse: React.FC<{
 
           {/* Rooftop Sintex Water Tank & Dish Antenna */}
           {hasWaterTank && (
-            <WaterTank position={[-2.4, 0.05, -0.9]} color="#0f172a" hasStand={true} />
+            <WaterTank position={[2.4, 0.05, -0.9]} color="#0f172a" hasStand={true} />
           )}
           {hasDishAntenna && (
-            <DishAntenna position={[0.8, 0.05, -1.0]} rotation={[0, -0.5, 0]} scale={0.8} />
+            <DishAntenna position={[-0.8, 0.05, -1.0]} rotation={[0, -0.5, 0]} scale={0.8} />
           )}
         </group>
       </group>
 
       {/* 7. FRONT SIDEWALK / GARDEN DETAIL */}
       {hasFrontGarden && (
-        <group position={[-3.2, 0.24, 2.5]}>
+        <group position={[3.2, 0.24, 2.5]}>
           {/* Low Green Bush Mounds along boundary */}
           {[-0.6, 0, 0.6].map((x, i) => (
             <mesh key={i} position={[x, 0.14, 0]} castShadow receiveShadow>
@@ -399,7 +393,7 @@ export const SingleStoryStairHouse: React.FC<{
       )}
 
       {/* Gully Red Tennis Cricket Ball on Front Entrance Step */}
-      <group position={[-1.2, 0.45, 2.2]}>
+      <group position={[1.2, 0.45, 2.2]}>
         <mesh castShadow>
           <sphereGeometry args={[0.04, 16, 16]} />
           <meshStandardMaterial color="#dc2626" roughness={0.35} />

@@ -129,11 +129,7 @@ export const ThreeStoryShopComplex: React.FC<{
 
   return (
     <group position={position} rotation={rotation}>
-      {/* 1. BASE PLINTH PLATFORM (12.4m x 8.4m) */}
-      <mesh position={[0, 0.12, 0]} receiveShadow castShadow>
-        <boxGeometry args={[12.4, 0.24, 8.4]} />
-        <meshStandardMaterial color="#cbd5e1" roughness={0.9} />
-      </mesh>
+
 
       {/* Front Commercial Concrete Sidewalk Steps */}
       <mesh position={[0, 0.24 + 0.06, 2.9]} receiveShadow castShadow>

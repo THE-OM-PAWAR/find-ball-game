@@ -5,12 +5,13 @@ import { Player } from '../../components/player/Player';
 import { Dog } from '../../components/dog/Dog';
 import { throwDistractionItem } from '../../components/dog/DogInteraction';
 import { emitNoise } from '../../components/dog/DogPerception';
-import type { DogConfig, DogTelemetry, DogAIState } from '../../components/dog/DogTypes';
+import type { DogConfig, DogTelemetry,} from '../../components/dog/DogTypes';
 import { DEFAULT_DOG_CONFIG } from '../../components/dog/DogTypes';
 import type { PlayerTelemetry } from '../../components/player/PlayerTypes';
 import { StudioLighting, type LightingPreset } from './3d/environment/StudioLighting';
 import { SingleStoryStairHouse } from './3d/houses/SingleStoryStairHouse';
 import { LargeTree, SmallTree, Bush, PottedPlant } from './3d/NatureProps';
+import { buildSingleStoryHouseColliders, createBoundaryWallColliders } from './3d/collision/HouseColliders';
 import { DEFAULT_STAIR_CONFIG } from '../data/studioDefaultConfigs';
 
 interface DogStudioProps {
@@ -27,7 +28,7 @@ export const DogStudio: React.FC<DogStudioProps> = ({
   const [playerTelemetry, setPlayerTelemetry] = useState<PlayerTelemetry | null>(null);
   const [dogTelemetry, setDogTelemetry] = useState<DogTelemetry | null>(null);
   const [isAlert, setIsAlert] = useState<boolean>(false);
-  const [biscuitsThrown, setBiscuitsThrown] = useState<number>(0);
+  const [, _setBiscuitsThrown] = useState<number>(0);
   const [missionNotice, setMissionNotice] = useState<string | null>(null);
 
   // Merge Config
@@ -66,7 +67,7 @@ export const DogStudio: React.FC<DogStudioProps> = ({
 
       throwDistractionItem(playerTelemetry.position, dir, 'biscuit', 7.8);
     }
-    setBiscuitsThrown((prev) => prev + 1);
+    _setBiscuitsThrown((prev) => prev + 1);
   }, [playerTelemetry]);
 
   // Keyboard shortcut: Press 'B' to throw biscuit

@@ -27,15 +27,15 @@ export const PlayerCamera: React.FC<PlayerCameraProps> = ({
   const { camera } = useThree();
 
   const params: ThirdPersonCameraParams = {
-    distance: 3.5,
+    distance: 3.6,
     minDistance: 1.2,
-    maxDistance: 7.0,
-    height: 1.45,
-    shoulderOffset: 0.15,
-    fov: 48,
-    sprintFov: 56,
-    pitchMin: -35,
-    pitchMax: 65,
+    maxDistance: 7.2,
+    height: 1.48,
+    shoulderOffset: 0.18,
+    fov: 54,
+    sprintFov: 62,
+    pitchMin: -38,
+    pitchMax: 68,
     sensitivityX: 0.003,
     sensitivityY: 0.0024,
     damping: 0.14,

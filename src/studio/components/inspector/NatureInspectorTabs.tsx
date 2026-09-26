@@ -1,5 +1,5 @@
 import React from 'react';
-import { Palette, Sparkles, Sliders, RotateCcw } from 'lucide-react';
+import { Palette, RotateCcw } from 'lucide-react';
 import { Switch } from '../ui/Switch';
 import {
   BOTANICAL_COLOR_PALETTES,

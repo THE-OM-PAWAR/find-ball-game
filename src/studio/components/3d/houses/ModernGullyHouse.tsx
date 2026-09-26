@@ -76,11 +76,7 @@ export const ModernGullyHouse: React.FC<{
 
   return (
     <group position={position} rotation={rotation}>
-      {/* 1. BASE PLINTH (Square white concrete platform with clean bevel) */}
-      <mesh position={[0, 0.12, 0]} receiveShadow castShadow>
-        <boxGeometry args={[7.4, 0.24, 7.4]} />
-        <meshStandardMaterial color="#f1f5f9" roughness={0.9} />
-      </mesh>
+
 
       {/* Front Entrance Steps (3 clean steps leading up to porch) */}
       <group position={[-0.45, 0.24, 1.85]}>

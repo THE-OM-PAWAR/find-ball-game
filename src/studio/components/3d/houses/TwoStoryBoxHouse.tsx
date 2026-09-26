@@ -78,18 +78,12 @@ export const TwoStoryBoxHouse: React.FC<{
     () => new THREE.MeshStandardMaterial({ color: '#78350f', roughness: 0.9, metalness: 0.6 }),
     []
   );
-  const floorPlinthMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: '#cbd5e1', roughness: 0.8 }),
-    []
-  );
+
 
   // House Dimensions: Width = 5.6m, Depth = 5.0m, Floor Height = 3.0m each
   return (
     <group position={position} rotation={rotation}>
-      {/* 1. GROUND PLINTH PLATFORM */}
-      <mesh position={[0, 0.12, 0]} receiveShadow castShadow material={floorPlinthMat}>
-        <boxGeometry args={[8.4, 0.24, 7.8]} />
-      </mesh>
+
 
       {/* Front Entrance 2-Step Stairs */}
       <group position={[-1.2, 0.24, 2.7]}>

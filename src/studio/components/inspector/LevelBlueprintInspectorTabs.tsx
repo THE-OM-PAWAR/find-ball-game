@@ -1,5 +1,5 @@
 import React from 'react';
-import { Map, Footprints, Eye, Compass, Flag, ShieldAlert, ArrowUpRight, RotateCcw } from 'lucide-react';
+import { Footprints, RotateCcw } from 'lucide-react';
 import { Switch } from '../ui/Switch';
 import { LEVEL_GAMEPLAY_MARKERS, type LevelGameplayMarker } from '../3d/level/LevelMarkers';
 import { LEVEL_BOUNDS } from '../3d/level/LevelZones';

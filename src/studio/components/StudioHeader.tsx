@@ -57,13 +57,13 @@ export const StudioHeader: React.FC<StudioHeaderProps> = ({
     <header className="top-header">
       {/* Breadcrumbs */}
       <div className="breadcrumbs">
-        <span className="crumb-root" onClick={() => navigate('/studio/level')} style={{ cursor: 'pointer' }}>
+        <span className="crumb-root" onClick={() => navigate('/studio/map')} style={{ cursor: 'pointer' }}>
           Studio
         </span>
         <ChevronRight size={14} className="crumb-separator" />
         <span className="crumb-segment">
-          {isLevelView || activeCategory === 'level'
-            ? 'Level 1 Blueprint'
+          {isLevelView || activeCategory === 'map' || activeCategory === 'level'
+            ? 'Level 1 Map'
             : isPlayerView
             ? 'Player Playground'
             : isDogView || activeCategory === 'dog'

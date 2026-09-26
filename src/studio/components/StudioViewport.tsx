@@ -4,7 +4,7 @@ import { VehicleStudio } from './VehicleStudio';
 import { NatureStudio } from './NatureStudio';
 import { DogStudio } from './DogStudio';
 import { PlayerPlaygroundStudio } from './PlayerPlaygroundStudio';
-import { LevelBlueprintStudio } from './LevelBlueprintStudio';
+import { MapStudio } from './MapStudio';
 import type { StudioState } from '../hooks/useStudioState';
 
 interface StudioViewportProps {
@@ -13,8 +13,8 @@ interface StudioViewportProps {
 
 export const StudioViewport: React.FC<StudioViewportProps> = ({ state }) => {
   const {
-    isLevelView,
-    levelConfig,
+    isMapView,
+    mapConfig,
     isPlayerView,
     isDogView,
     isNatureView,
@@ -56,13 +56,12 @@ export const StudioViewport: React.FC<StudioViewportProps> = ({ state }) => {
 
   return (
     <div className="canvas-frame">
-      {isLevelView ? (
-        <LevelBlueprintStudio
+      {isMapView ? (
+        <MapStudio
           lightingPreset={lightingPreset}
-          showMarkers={levelConfig.showMarkers}
-          showRoutes={true}
-          showLabels={levelConfig.showLabels}
-          activeFilter={levelConfig.activeRouteFilter === 'dog_patrol' ? 'all' : (levelConfig.activeRouteFilter as any)}
+          showWaypoints={mapConfig.showWaypoints}
+          showZoneLabels={mapConfig.showZoneLabels}
+          showPitchMarkings={mapConfig.showPitchMarkings}
         />
       ) : isPlayerView ? (
         <PlayerPlaygroundStudio

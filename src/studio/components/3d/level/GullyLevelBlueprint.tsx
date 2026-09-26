@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { LEVEL_BLOCK_ZONES, LEVEL_BOUNDS } from './LevelZones';

@@ -10,6 +10,8 @@ export const STAND_TO_CROUCH_GLB_PATH = '/Standing To Crouched.fbx.glb';
 export const CROUCH_IDLE_GLB_PATH = '/Crouching Idle.fbx.glb';
 export const CROUCH_WALK_GLB_PATH = '/Crouch Walk.fbx.glb';
 export const CROUCH_TO_STAND_GLB_PATH = '/Crouched To Standing.fbx.glb';
+export const CLIMB_WALL_GLB_PATH = '/Climbing Up Wall.fbx.glb';
+export const CLIMB_LADDER_GLB_PATH = '/Climbing Ladder.fbx.glb';
 
 interface PlayerAnimationProps {
   state: PlayerState;
@@ -70,13 +72,15 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
   const fallbackQuatsRef = useRef<Map<string, THREE.Quaternion>>(new Map());
   const fallbackPositionsRef = useRef<Map<string, THREE.Vector3>>(new Map());
 
-  // Load all 6 Animation GLB Clips
+  // Load all 8 Animation GLB Clips
   const { animations: walkAnims } = useGLTF(WALKING_GLB_PATH);
   const { animations: jumpAnims } = useGLTF(JUMP_GLB_PATH);
   const { animations: standToCrouchAnims } = useGLTF(STAND_TO_CROUCH_GLB_PATH);
   const { animations: crouchIdleAnims } = useGLTF(CROUCH_IDLE_GLB_PATH);
   const { animations: crouchWalkAnims } = useGLTF(CROUCH_WALK_GLB_PATH);
   const { animations: crouchToStandAnims } = useGLTF(CROUCH_TO_STAND_GLB_PATH);
+  const { animations: climbWallAnims } = useGLTF(CLIMB_WALL_GLB_PATH);
+  const { animations: climbLadderAnims } = useGLTF(CLIMB_LADDER_GLB_PATH);
 
   // Determine active skeleton prefix
   const activePrefix = useMemo(() => {
@@ -92,6 +96,8 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
   const crouchIdleClip = useMemo(() => prepareInPlaceClip(crouchIdleAnims, 'crouch_idle', activePrefix), [crouchIdleAnims, activePrefix]);
   const crouchWalkClip = useMemo(() => prepareInPlaceClip(crouchWalkAnims, 'crouch_walk', activePrefix), [crouchWalkAnims, activePrefix]);
   const crouchToStandClip = useMemo(() => prepareInPlaceClip(crouchToStandAnims, 'crouch_to_stand', activePrefix), [crouchToStandAnims, activePrefix]);
+  const climbWallClip = useMemo(() => prepareInPlaceClip(climbWallAnims, 'climb_wall', activePrefix), [climbWallAnims, activePrefix]);
+  const climbLadderClip = useMemo(() => prepareInPlaceClip(climbLadderAnims, 'climb_ladder', activePrefix), [climbLadderAnims, activePrefix]);
 
   // Animation Mixer instance bound to Skinned Character Model
   const mixer = useMemo(() => {
@@ -106,6 +112,8 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
   const crouchIdleActionRef = useRef<THREE.AnimationAction | null>(null);
   const crouchWalkActionRef = useRef<THREE.AnimationAction | null>(null);
   const crouchToStandActionRef = useRef<THREE.AnimationAction | null>(null);
+  const climbWallActionRef = useRef<THREE.AnimationAction | null>(null);
+  const climbLadderActionRef = useRef<THREE.AnimationAction | null>(null);
 
   // Initialize Animation Actions
   useEffect(() => {
@@ -156,11 +164,35 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
       a.setEffectiveWeight(0);
       crouchToStandActionRef.current = a;
     }
+    if (climbWallClip) {
+      const a = mixer.clipAction(climbWallClip);
+      a.setLoop(THREE.LoopRepeat, Infinity);
+      a.play();
+      a.setEffectiveWeight(0);
+      climbWallActionRef.current = a;
+    }
+    if (climbLadderClip) {
+      const a = mixer.clipAction(climbLadderClip);
+      a.setLoop(THREE.LoopRepeat, Infinity);
+      a.play();
+      a.setEffectiveWeight(0);
+      climbLadderActionRef.current = a;
+    }
 
     return () => {
       mixer.stopAllAction();
     };
-  }, [mixer, walkClip, jumpClip, standToCrouchClip, crouchIdleClip, crouchWalkClip, crouchToStandClip]);
+  }, [
+    mixer,
+    walkClip,
+    jumpClip,
+    standToCrouchClip,
+    crouchIdleClip,
+    crouchWalkClip,
+    crouchToStandClip,
+    climbWallClip,
+    climbLadderClip,
+  ]);
 
   useFrame((_, delta) => {
     if (!bonesMap || bonesMap.size === 0) return;
@@ -181,6 +213,7 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
     else if (state === 'RUN') cycleSpeed = 10.5;
     else if (state === 'WALK') cycleSpeed = 6.5;
     else if (state === 'CROUCH_WALK') cycleSpeed = 4.5;
+    else if (state === 'CLIMB_WALL' || state === 'CLIMB_LADDER') cycleSpeed = 8.0;
     else cycleSpeed = 1.8;
 
     timeRef.current += dt * cycleSpeed;
@@ -239,6 +272,9 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
     const isWalkingState = state === 'WALK' || state === 'RUN' || state === 'SPRINT';
     const isJumpState = state === 'JUMP' || state === 'FALL';
     const isCrouchState = state === 'CROUCH' || state === 'CROUCH_WALK';
+    const isClimbWallState = state === 'CLIMB_WALL';
+    const isClimbLadderState = state === 'CLIMB_LADDER';
+    const isClimbing = isClimbWallState || isClimbLadderState;
     const wasCrouchState = prevStateRef.current === 'CROUCH' || prevStateRef.current === 'CROUCH_WALK';
 
     // 1. Trigger Transition Actions
@@ -248,6 +284,26 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
         jumpActionRef.current.setEffectiveWeight(1.0);
         jumpActionRef.current.timeScale = 1.45;
         jumpActionRef.current.play();
+      }
+    }
+
+    // Trigger Climb Wall Action
+    if (isClimbWallState && prevStateRef.current !== 'CLIMB_WALL') {
+      if (climbWallActionRef.current) {
+        climbWallActionRef.current.reset();
+        climbWallActionRef.current.setEffectiveWeight(1.0);
+        climbWallActionRef.current.timeScale = 1.35;
+        climbWallActionRef.current.play();
+      }
+    }
+
+    // Trigger Climb Ladder Action
+    if (isClimbLadderState && prevStateRef.current !== 'CLIMB_LADDER') {
+      if (climbLadderActionRef.current) {
+        climbLadderActionRef.current.reset();
+        climbLadderActionRef.current.setEffectiveWeight(1.0);
+        climbLadderActionRef.current.timeScale = 1.25;
+        climbLadderActionRef.current.play();
       }
     }
 
@@ -274,9 +330,37 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
     prevStateRef.current = state;
 
     // 2. Control Weights for All Actions
+    // Climbing Up Wall
+    if (climbWallActionRef.current) {
+      if (isClimbWallState) {
+        climbWallActionRef.current.timeScale = 1.35;
+        climbWallActionRef.current.setEffectiveWeight(
+          THREE.MathUtils.damp(climbWallActionRef.current.getEffectiveWeight(), 1.0, 18, dt)
+        );
+      } else {
+        climbWallActionRef.current.setEffectiveWeight(
+          THREE.MathUtils.damp(climbWallActionRef.current.getEffectiveWeight(), 0.0, 14, dt)
+        );
+      }
+    }
+
+    // Climbing Ladder
+    if (climbLadderActionRef.current) {
+      if (isClimbLadderState) {
+        climbLadderActionRef.current.timeScale = 1.25;
+        climbLadderActionRef.current.setEffectiveWeight(
+          THREE.MathUtils.damp(climbLadderActionRef.current.getEffectiveWeight(), 1.0, 18, dt)
+        );
+      } else {
+        climbLadderActionRef.current.setEffectiveWeight(
+          THREE.MathUtils.damp(climbLadderActionRef.current.getEffectiveWeight(), 0.0, 14, dt)
+        );
+      }
+    }
+
     // Walking / Running / Sprinting
     if (walkActionRef.current) {
-      if (isWalkingState && !isJumpState && !isCrouchState) {
+      if (isWalkingState && !isJumpState && !isCrouchState && !isClimbing) {
         let targetSpeed = 1.0;
         if (state === 'SPRINT') targetSpeed = 1.75;
         else if (state === 'RUN') targetSpeed = 1.35;
@@ -295,7 +379,7 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
 
     // Jump / Fall
     if (jumpActionRef.current) {
-      if (isJumpState) {
+      if (isJumpState && !isClimbing) {
         jumpActionRef.current.setEffectiveWeight(
           THREE.MathUtils.damp(jumpActionRef.current.getEffectiveWeight(), 1.0, 14, dt)
         );
@@ -308,8 +392,8 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
 
     // Crouch Locomotion 1D Blend Tree (Crouch Idle <-> Crouch Walk)
     const crouchSpeedRatio = Math.min(1.0, Math.max(0.0, (horizontalSpeed - 0.05) / 1.4));
-    const targetCrouchWalkWeight = isCrouchState && !isJumpState ? (state === 'CROUCH_WALK' ? Math.max(0.3, crouchSpeedRatio) : crouchSpeedRatio) : 0;
-    const targetCrouchIdleWeight = isCrouchState && !isJumpState ? (1.0 - targetCrouchWalkWeight) : 0;
+    const targetCrouchWalkWeight = isCrouchState && !isJumpState && !isClimbing ? (state === 'CROUCH_WALK' ? Math.max(0.3, crouchSpeedRatio) : crouchSpeedRatio) : 0;
+    const targetCrouchIdleWeight = isCrouchState && !isJumpState && !isClimbing ? (1.0 - targetCrouchWalkWeight) : 0;
 
     if (crouchIdleActionRef.current) {
       crouchIdleActionRef.current.setEffectiveWeight(
@@ -318,7 +402,7 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
     }
 
     if (crouchWalkActionRef.current) {
-      if (isCrouchState && !isJumpState) {
+      if (isCrouchState && !isJumpState && !isClimbing) {
         crouchWalkActionRef.current.timeScale = Math.max(0.9, Math.min(1.6, horizontalSpeed / 1.3));
       }
       crouchWalkActionRef.current.setEffectiveWeight(
@@ -354,7 +438,12 @@ export const PlayerAnimation: React.FC<PlayerAnimationProps> = ({
     }
 
     // 3. Procedural Overlay Poses for Standing IDLE and LAND states
-    if (state === 'IDLE' && !isCrouchState && (!crouchToStandActionRef.current || !crouchToStandActionRef.current.isRunning())) {
+    if (
+      state === 'IDLE' &&
+      !isCrouchState &&
+      !isClimbing &&
+      (!crouchToStandActionRef.current || !crouchToStandActionRef.current.isRunning())
+    ) {
       // Reset bones to pristine bind pose before applying natural standing IDLE breathing & arm posture
       bonesMap.forEach((bone, name) => {
         const rQ = getRestQuat(name);
@@ -401,3 +490,5 @@ useGLTF.preload(STAND_TO_CROUCH_GLB_PATH);
 useGLTF.preload(CROUCH_IDLE_GLB_PATH);
 useGLTF.preload(CROUCH_WALK_GLB_PATH);
 useGLTF.preload(CROUCH_TO_STAND_GLB_PATH);
+useGLTF.preload(CLIMB_WALL_GLB_PATH);
+useGLTF.preload(CLIMB_LADDER_GLB_PATH);

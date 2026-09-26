@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useRef } from 'react';
+import React, { Suspense, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, MapControls, GizmoHelper, GizmoViewport } from '@react-three/drei';
 import * as THREE from 'three';
@@ -7,7 +7,7 @@ import { getBlueprintColliders } from './3d/level/LevelZones';
 import { LEVEL_GAMEPLAY_MARKERS } from './3d/level/LevelMarkers';
 import { Player } from '../../components/player/Player';
 import { StudioLighting, type LightingPreset } from './3d/environment/StudioLighting';
-import { Eye, Map, Navigation, ShieldCheck, Flag, Play, RotateCcw } from 'lucide-react';
+import { Eye, Map, Play } from 'lucide-react';
 
 export type BlueprintCameraMode = 'topdown' | 'perspective' | 'player';
 

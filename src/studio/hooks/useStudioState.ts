@@ -32,6 +32,10 @@ import {
   DEFAULT_LEVEL_BLUEPRINT_CONFIG,
   type LevelBlueprintConfig,
 } from '../components/inspector/LevelBlueprintInspectorTabs';
+import {
+  DEFAULT_MAP_STUDIO_CONFIG,
+  type MapStudioConfig,
+} from '../components/inspector/MapInspectorTabs';
 
 import {
   DEFAULT_SCOOTER_CONFIG,
@@ -55,14 +59,14 @@ export function useStudioState() {
   const location = useLocation();
 
   const pathParts = location.pathname.split('/');
-  const rawCategory = pathParts[2] || 'level';
-  const isLevelView = rawCategory.toLowerCase() === 'level' || rawCategory.toLowerCase() === 'blueprint' || rawCategory.toLowerCase() === 'map';
+  const rawCategory = pathParts[2] || 'map';
+  const isMapView = rawCategory.toLowerCase() === 'map' || rawCategory.toLowerCase() === 'level' || rawCategory.toLowerCase() === 'blueprint';
   const isPlayerView = rawCategory.toLowerCase() === 'player';
   const isDogView = rawCategory.toLowerCase() === 'dog';
   const isNatureView = rawCategory.toLowerCase() === 'nature' || rawCategory.toLowerCase() === 'trees';
   const isVehicleView = rawCategory.toLowerCase() === 'bikes' || rawCategory.toLowerCase() === 'props';
-  const activeCategory = isLevelView
-    ? 'level'
+  const activeCategory = isMapView
+    ? 'map'
     : isPlayerView
     ? 'player'
     : isDogView
@@ -75,6 +79,9 @@ export function useStudioState() {
 
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(true);
+
+  // Active Level 1 Map State (50m x 50m, 14 Houses)
+  const [mapConfig, setMapConfig] = useState<MapStudioConfig>(DEFAULT_MAP_STUDIO_CONFIG);
 
   // Active Level 1 Blueprint State
   const [levelConfig, setLevelConfig] = useState<LevelBlueprintConfig>(DEFAULT_LEVEL_BLUEPRINT_CONFIG);
@@ -218,8 +225,8 @@ export function useStudioState() {
   }, []);
 
   const getModelTitle = useCallback((): string => {
-    if (isLevelView) {
-      return 'Level 1 XZ-Plane Blueprint & Greybox Traversal Blockout';
+    if (isMapView) {
+      return 'Level 1 Dense Indian Gully Map (50m × 50m • 14 Houses)';
     }
 
     if (isPlayerView) {
@@ -291,11 +298,11 @@ export function useStudioState() {
       default:
         return 'Rooftop Terrace House';
     }
-  }, [isLevelView, isPlayerView, isDogView, isNatureView, isVehicleView, natureType, vehicleType, houseType]);
+  }, [isMapView, isPlayerView, isDogView, isNatureView, isVehicleView, natureType, vehicleType, houseType]);
 
   const getDimensionsText = useCallback((): string => {
-    if (isLevelView) {
-      return 'Map Footprint: 35m × 35m (1,225 m²) • Elevation: +0.0m to +4.85m • 10 Traversal Nodes • Target Playtime: 10-15 Min';
+    if (isMapView) {
+      return 'Map Footprint: 50m × 50m (2,500 m²) • 14 Houses (0 IndianTerrace) • Elevation: +0.0m to +9.48m • Target Ball on Roof 10 (+6.48m)';
     }
 
     if (isPlayerView) {
@@ -367,11 +374,12 @@ export function useStudioState() {
       default:
         return 'Terrace: 9.0m × 7.0m • Height: 2.75m • Traditional Rooftop';
     }
-  }, [isLevelView, isPlayerView, isDogView, isNatureView, isVehicleView, dogConfig, natureType, vehicleType, houseType]);
+  }, [isMapView, isPlayerView, isDogView, isNatureView, isVehicleView, dogConfig, natureType, vehicleType, houseType]);
 
   return {
     rawCategory,
-    isLevelView,
+    isMapView,
+    isLevelView: isMapView,
     isPlayerView,
     isDogView,
     isNatureView,
@@ -381,6 +389,8 @@ export function useStudioState() {
     setSearchQuery,
     inspectorOpen,
     setInspectorOpen,
+    mapConfig,
+    setMapConfig,
     levelConfig,
     setLevelConfig,
     playerParams,
